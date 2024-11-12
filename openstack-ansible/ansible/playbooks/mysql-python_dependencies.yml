@@ -1,0 +1,15 @@
+---
+- name: Create directory "/usr/include/mysql" (workaround for a bug)
+  file:
+    path: /usr/include/mysql/
+    state: directory
+    mode: '0755'
+  when: ansible_os_family == 'Debian' or 'RedHat'
+
+- name: download mysql.h (workaround for a bug)
+  get_url:
+    url: https://raw.githubusercontent.com/paulfitz/mysql-connector-c/master/include/my_config.h
+    dest: /usr/include/mysql/my_config.h
+    mode: '0440'
+  when: ansible_os_family == 'Debian' or 'RedHat'
+

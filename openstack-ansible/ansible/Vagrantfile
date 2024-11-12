@@ -1,0 +1,23 @@
+
+Vagrant.configure("2") do |config|
+
+    # Selecionando box (imagem do SO)
+    config.vm.box = "centos/7"
+  
+    # Atribundo hostnamame para a VM
+    config.vm.hostname = "ansible"
+  
+    # Criando uma rede privada, a VM receberá o IP 192.168.56.5
+    config.vm.network "private_network", ip: "192.168.56.5"
+  
+    # Criando sistemas de arquivos compartilhado NFS
+    # Diretório compartilhado => atual "." para "/vagrant"
+    config.vm.synced_folder ".", "/vagrant", type: "nfs" , nfs_version: 4, nfs_udp: false
+  
+    # Arquivo de provisionamento para executar scipt 'provision.sh' no shell padrão
+    config.vm.provision "shell", path: "provision.sh"
+
+    config.vbguest.auto_update = false
+  
+  end
+  

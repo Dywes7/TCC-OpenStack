@@ -1,0 +1,27 @@
+---
+- name: Adicioanr hostnames
+  lineinfile:
+    dest: /etc/hosts  # caminho do arquivo onde será feito a iteração
+    state: present
+    line: "{{item}}"   # iteração sobre cada item no with_item
+  with_items:
+    - "{{ip_controller}} {{hostname_controller}}"
+    - "{{ip_compute1}} {{hostname_compute1}}"
+    - "{{ip_compute2}} {{hostname_compute2}}"
+    - "{{ip_ansible}} {{hostname_ansible}}"
+      
+- name: Instalar chrony
+  apt:
+    name: chrony
+    state: latest
+
+- name: Adicionar '#' nas linhas que começam com 'pool' em /etc/chrony/chrony.conf
+  lineinfile:
+    path: /etc/chrony/chrony.conf
+    line: '# {{item}}'
+    regexp: "(^pool)"        
+  with_items:
+    - pool ntp.ubuntu.com        iburst maxsources 4
+    - pool 0.ubuntu.pool.ntp.org iburst maxsources 1
+    - pool 1.ubuntu.pool.ntp.org iburst maxsources 1
+    - pool 2.ubuntu.pool.ntp.org iburst maxsources 2

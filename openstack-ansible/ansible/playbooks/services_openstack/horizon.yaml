@@ -1,0 +1,48 @@
+---
+- name: Instalacao pacote openstack-dashboard
+  command: apt install -y openstack-dashboard
+
+- name: Editar OPENSTACK_HOST no arquivo /etc/openstack-dashboard/local_settings.py
+  lineinfile:
+    path: /etc/openstack-dashboard/local_settings.py
+    regexp: '^OPENSTACK_HOST'
+    line: 'OPENSTACK_HOST = "{{hostname_controller}}"'
+
+- name: Editar SESSION no arquivo /etc/openstack-dashboard/local_settings.py
+  lineinfile:
+    path: /etc/openstack-dashboard/local_settings.py
+    insertbefore: '^CACHES = {'
+    line: "SESSION_ENGINE = 'django.contrib.sessions.backends.cache'"
+
+- name: Editar CACHES no /etc/openstack-dashboard/local_settings.py
+  replace:
+    path: /etc/openstack-dashboard/local_settings.py
+    regexp: '^CACHES = {.*$([\s\S]*?^.*\n){5}'
+    replace: |
+  
+      CACHES = {
+          'default': {
+               'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+               'LOCATION': '{{hostname_controller}}:11211',
+          }
+      }
+
+- name: Editar OPENSTACK_HOST no arquivo /etc/openstack-dashboard/local_settings.py
+  replace:
+    path: /etc/openstack-dashboard/local_settings.py
+    regexp: '^OPENSTACK_KEYSTONE_URL = "http:\/\/%s\/identity\/v3" % OPENSTACK_HOST'
+    replace: |
+      OPENSTACK_KEYSTONE_URL = "http://%s:5000/identity/v3" % OPENSTACK_HOST
+      OPENSTACK_KEYSTONE_MULTIDOMAIN_SUPPORT = True
+      OPENSTACK_API_VERSIONS = {
+          "identity": 3,
+          "image": 2,
+          "volume": 3,
+      }
+      OPENSTACK_KEYSTONE_DEFAULT_DOMAIN = "Default"
+      OPENSTACK_KEYSTONE_DEFAULT_ROLE = "user"
+
+- name: Recarregar servico apache
+  systemd:
+    name: apache2.service
+    state: reloaded

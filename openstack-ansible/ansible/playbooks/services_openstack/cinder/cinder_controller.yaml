@@ -1,0 +1,131 @@
+---
+- name: Criar base de dados cinder
+  mysql_db:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: cinder
+    state: present
+
+- name: Criar usuario e conceder privilegios no localhost
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: cinder
+    host: localhost
+    password: "{{CINDER_DBPASS}}"
+    priv: "cinder.*:ALL"
+    state: present
+
+- name: Criar usuario e conceder privilegios para '%' (qualquer host)
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: cinder
+    host: '%'
+    password: "{{CINDER_DBPASS}}"
+    priv: "cinder.*:ALL"
+    state: present
+
+- name: Criar user cinder
+  command: openstack user create --domain default --password {{CINDER_PASS}} cinder
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Adicionar funcao de admin para usuario cinder e ao projeto service
+  command: openstack role add --project service --user cinder admin
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar entidade de servico cinder
+  command: openstack service create --name cinderv3 --description "OpenStack Block Storage" volumev3
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint public para o cinder
+  command: openstack endpoint create --region RegionOne volumev3 public http://{{hostname_controller}}:8776/v3/%\(project_id\)s
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint internal para o cinder
+  command: openstack endpoint create --region RegionOne volumev3 internal http://{{hostname_controller}}:8776/v3/%\(project_id\)s
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint admin para o cinder
+  command: openstack endpoint create --region RegionOne volumev3 admin http://{{hostname_controller}}:8776/v3/%\(project_id\)s
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Instalar pacotes para o cinder
+  apt: name="{{packages}}" state=latest
+  vars:
+    packages:
+    - cinder-api
+    - cinder-scheduler
+
+- name: Editar database no arquivo /etc/cinder/cinder.conf
+  lineinfile:
+    path: /etc/cinder/cinder.conf
+    line: 'connection = mysql+pymysql://cinder:{{CINDER_DBPASS}}@{{hostname_controller}}/cinder'
+    regexp: "(^connection)"
+
+- name: Editar [DEFAULT] (transport_url) no arquivo /etc/cinder/cinder.conf
+  lineinfile:
+    path: /etc/cinder/cinder.conf
+    insertafter: '^\[DEFAULT\]'
+    line: 'transport_url = rabbit://openstack:{{RABBIT_PASS}}@{{hostname_controller}}'
+
+- name: Editar [keystone_authtoken] no /etc/cinder/cinder.conf
+  blockinfile:
+    path: /etc/cinder/cinder.conf
+    marker: "# {mark} start keystone_authtoken"
+    block: |
+      #
+      [keystone_authtoken]
+      service_token_roles = service
+      service_token_roles_required = true
+      www_authenticate_uri = http://{{hostname_controller}}:5000/
+      auth_url = http://{{hostname_controller}}:5000/
+      memcached_servers = {{hostname_controller}}:11211
+      auth_type = password
+      project_domain_name = Default
+      user_domain_name = Default
+      project_name = service
+      username = cinder
+      password = {{CINDER_PASS}}
+
+- name: Editar [DEFAULT] (my_ip) no arquivo /etc/cinder/cinder.conf
+  lineinfile:
+    path: /etc/cinder/cinder.conf
+    insertafter: '^\[DEFAULT\]'
+    line: 'my_ip = {{ip_controller}}'
+
+- name: Editar [oslo_concurrency] no /etc/cinder/cinder.conf
+  blockinfile:
+    path: /etc/cinder/cinder.conf
+    marker: "# {mark} start oslo_concurrency"
+    block: |
+      #
+      [oslo_concurrency]
+      lock_path = /var/lib/cinder/tmp
+
+- name: Preencher a base de dados block storage
+  command: su -s /bin/sh -c "cinder-manage db sync" cinder
+
+- name: Editar [cinder] no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    line: 'os_region_name = RegionOne'
+    regexp: "^#os_region_name"
+
+- name: Reiniciar o serviço nova-api
+  service:    
+    name: nova-api
+    state: restarted
+
+- name: Reiniciar o serviço cinder-scheduler
+  service:    
+    name: cinder-scheduler
+    state: restarted
+
+- name: Reiniciar o serviço apache2
+  service:    
+    name: apache2
+    state: restarted

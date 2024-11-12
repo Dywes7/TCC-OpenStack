@@ -1,0 +1,20 @@
+---
+- name: Criar funcao user
+  command: openstack role create user
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar funcao service
+  command: openstack role create service
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Adicionar funcao service ao user cinder
+  command: openstack role add --user cinder --project service service
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Adicionar funcao service ao user nova
+  command: openstack role add --user nova --project service service
+  environment: "{{vars_admin}}"
+  ignore_errors: yes

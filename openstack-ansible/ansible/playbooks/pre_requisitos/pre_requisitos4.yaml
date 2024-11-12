@@ -1,0 +1,8 @@
+---
+- name: Adicao da lista de repositorio cloud-archive:antelope
+  command: add-apt-repository -y cloud-archive:antelope
+    
+- name: Instalar pyhton3 para client openstack
+  apt:
+    name: python3-openstackclient
+    state: latest

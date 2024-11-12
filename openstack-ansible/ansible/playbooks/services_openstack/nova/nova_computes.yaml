@@ -1,0 +1,102 @@
+---
+- name: Instalar pacote nova-compute
+  apt:
+    name: nova-compute
+    state: latest
+
+- name: Editar [DEFAULT] no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#transport_url = rabbit://'
+    line: 'transport_url = rabbit://openstack:{{RABBIT_PASS}}@{{hostname_controller}}:5672/'
+
+- name: Editar [api] no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#auth_strategy'
+    line: 'auth_strategy = keystone'
+
+- name: Editar [keystone_authtoken] no /etc/nova/nova.conf
+  blockinfile:
+    path: /etc/nova/nova.conf
+    marker: "# {mark} start keystone_authtoken"
+    insertafter: '^\[keystone_authtoken\]'
+    block: |
+      www_authenticate_uri = http://{{hostname_controller}}:5000/
+      auth_url = http://{{hostname_controller}}:5000/
+      memcached_servers = {{hostname_controller}}:11211
+      auth_type = password
+      project_domain_name = Default
+      user_domain_name = Default
+      project_name = service
+      username = nova
+      password = {{NOVA_PASS}}
+
+- name: Editar [service_user] no /etc/nova/nova.conf
+  blockinfile:
+    path: /etc/nova/nova.conf
+    marker: "# {mark} start service_user"
+    insertafter: '^\[service_user\]'
+    block: |
+      send_service_user_token = true
+      auth_url = http://{{hostname_controller}}:5000/identity
+      auth_strategy = keystone
+      auth_type = password
+      project_domain_name = Default
+      project_name = service
+      user_domain_name = Default
+      username = nova
+      password = {{NOVA_PASS}}
+
+- name: Coletar fatos da interface rede
+  ansible.builtin.setup:
+  register: network_facts
+
+- name: Editar [DEFAULT] (edit my_ip) no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#my_ip'
+    line: 'my_ip = {{ nic }}' # pega IP da máquina que executa o comando
+
+- name: Editar [vnc] no arquivo /etc/nova/nova.conf
+  blockinfile:
+    path: /etc/nova/nova.conf
+    marker: "# {mark} start vnc"
+    insertafter: '^\[vnc\]'
+    block: |
+      enabled = true
+      server_listen = 0.0.0.0
+      server_proxyclient_address = $my_ip
+      novncproxy_base_url = http://{{hostname_controller}}:6080/vnc_auto.html
+
+- name: Editar [glance] no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#api_servers'
+    line: 'api_servers = http://{{hostname_controller}}:9292'
+
+- name: Editar [oslo_concurrency] no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#lock_path'
+    line: 'lock_path = /var/lib/nova/tmp'
+
+- name: Editar [placement] no /etc/nova/nova.conf
+  blockinfile:
+    path: /etc/nova/nova.conf
+    marker: "# {mark} start placement"
+    insertafter: '^\[placement\]'
+    block: |
+      region_name = RegionOne
+      project_domain_name = Default
+      project_name = service
+      auth_type = password
+      user_domain_name = Default
+      auth_url = http://{{hostname_controller}}:5000/v3
+      username = placement
+      password = {{PLACEMENT_PASS}}
+      
+- name: Reiniciar o serviço nova-compute
+  service:    
+    name: nova-compute
+    state: restarted

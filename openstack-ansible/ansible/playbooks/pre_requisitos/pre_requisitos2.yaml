@@ -1,0 +1,14 @@
+---
+- name: Editar /etc/chrony/chrony.conf adicionado o servidor de horas 200.160.7.186
+  lineinfile:
+    path: /etc/chrony/chrony.conf
+    state: present
+    line: "{{item}}"
+  with_items:
+    - server {{ntp_server}} iburst
+    - allow {{subrede}}
+      
+- name: Reiniciar o serviço chrony
+  service:    
+    name: chrony
+    state: restarted  # reiniciar serviço

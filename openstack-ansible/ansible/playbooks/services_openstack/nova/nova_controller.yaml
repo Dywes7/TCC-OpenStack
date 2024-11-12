@@ -1,0 +1,263 @@
+---
+- name: Criar base de dados nova_api
+  mysql_db:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: nova_api
+    state: present
+
+- name: Criar base de dados nova
+  mysql_db:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: nova
+    state: present
+  
+- name: Criar base de dados nova_cell0
+  mysql_db:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: nova_cell0
+    state: present
+
+- name: Criar usuario nova e conceder privilegios no localhost ao banco nova_api
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: nova
+    host: localhost
+    password: "{{NOVA_DBPASS}}"
+    priv: "nova_api.*:ALL"
+    append_privs: yes
+    state: present
+
+- name: Criar usuario nova e conceder privilegios para '%' ao banco nova_api
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: nova
+    host: '%'
+    password: "{{NOVA_DBPASS}}"
+    priv: "nova_api.*:ALL"
+    append_privs: yes
+    state: present
+
+- name: Criar usuario nova e conceder privilegios no localhost ao banco nova
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: nova
+    host: localhost
+    password: "{{NOVA_DBPASS}}"
+    priv: "nova.*:ALL"
+    append_privs: yes
+    state: present
+
+- name: Criar usuario nova e conceder privilegios para '%' ao banco nova
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: nova
+    host: '%'
+    password: "{{NOVA_DBPASS}}"
+    priv: "nova.*:ALL"
+    append_privs: yes
+    state: present
+
+- name: Criar usuario nova e conceder privilegios no localhost ao banco nova_cell0
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: nova
+    host: localhost
+    password: "{{NOVA_DBPASS}}"
+    priv: "nova_cell0.*:ALL"
+    append_privs: yes
+    state: present
+
+- name: Criar usuario nova e conceder privilegios para '%' ao banco nova_cell0
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: nova
+    host: '%'
+    password: "{{NOVA_DBPASS}}"
+    priv: "nova_cell0.*:ALL"
+    append_privs: yes
+    state: present
+
+- name: Criar user nova do openstack 
+  command: openstack user create --domain default --password {{NOVA_PASS}} nova
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Adicionar funcao de admin para usuario nova e ao projeto service
+  command: openstack role add --project service --user nova admin
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar entidade de servico nova
+  command: openstack service create --name nova --description "OpenStack Compute" compute
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint public para o nova
+  command: openstack endpoint create --region RegionOne compute public http://{{hostname_controller}}:8774/v2.1
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint public para o nova
+  command: openstack endpoint create --region RegionOne compute internal http://{{hostname_controller}}:8774/v2.1
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint public para o nova
+  command: openstack endpoint create --region RegionOne compute admin http://{{hostname_controller}}:8774/v2.1
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+
+- name: Instalar pacotes para o nova
+  apt: name="{{packages}}" state=latest
+  vars:
+    packages:
+    - nova-api
+    - nova-conductor
+    - nova-novncproxy
+    - nova-scheduler
+
+- name: Editar [api_database] no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^connection = sqlite:\/\/\/\/var\/lib\/nova\/nova_api'
+    line: 'connection = mysql+pymysql://nova:{{NOVA_DBPASS}}@{{hostname_controller}}/nova_api'
+
+- name: Editar [database] no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^connection = sqlite:\/\/\/\/var\/lib\/nova\/nova.'
+    line: 'connection = mysql+pymysql://nova:{{NOVA_DBPASS}}@{{hostname_controller}}/nova'
+
+- name: Editar [DEFAULT] no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#transport_url = rabbit://'
+    line: 'transport_url = rabbit://openstack:{{RABBIT_PASS}}@{{hostname_controller}}:5672/'
+
+- name: Editar [api] no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#auth_strategy'
+    line: 'auth_strategy = keystone'
+
+- name: Editar [keystone_authtoken] no /etc/nova/nova.conf
+  blockinfile:
+    path: /etc/nova/nova.conf
+    marker: "# {mark} start keystone_authtoken"
+    insertafter: '^\[keystone_authtoken\]'
+    block: |
+      www_authenticate_uri = http://{{hostname_controller}}:5000/
+      auth_url = http://{{hostname_controller}}:5000/
+      memcached_servers = {{hostname_controller}}:11211
+      auth_type = password
+      project_domain_name = Default
+      user_domain_name = Default
+      project_name = service
+      username = nova
+      password = {{NOVA_PASS}}
+
+- name: Editar [service_user] no /etc/nova/nova.conf
+  blockinfile:
+    path: /etc/nova/nova.conf
+    marker: "# {mark} start service_user"
+    insertafter: '^\[service_user\]'
+    block: |
+      send_service_user_token = true
+      auth_url = http://{{hostname_controller}}:5000/identity
+      auth_strategy = keystone
+      auth_type = password
+      project_domain_name = Default
+      project_name = service
+      user_domain_name = Default
+      username = nova
+      password = {{NOVA_PASS}}
+
+- name: Editar [DEFAULT] (edit my_ip) no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#my_ip'
+    line: 'my_ip = {{ip_controller}}' 
+
+- name: Editar [vnc] no arquivo /etc/nova/nova.conf
+  blockinfile:
+    path: /etc/nova/nova.conf
+    marker: "# {mark} start vnc"
+    insertafter: '^\[vnc\]'
+    block: |
+      enabled = true
+      server_listen = $my_ip
+      server_proxyclient_address = $my_ip
+  
+- name: Editar [glance] no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#api_servers'
+    line: 'api_servers = http://{{hostname_controller}}:9292'
+
+- name: Editar [oslo_concurrency] no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#lock_path'
+    line: 'lock_path = /var/lib/nova/tmp'
+
+- name: Editar [DEFAULT] (log_dir) no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^log_dir'
+    line: '#log_dir = /var/log/nova'
+
+- name: Editar [placement] no /etc/nova/nova.conf
+  blockinfile:
+    path: /etc/nova/nova.conf
+    marker: "# {mark} start placement"
+    insertafter: '^\[placement\]'
+    block: |
+      region_name = RegionOne
+      project_domain_name = Default
+      project_name = service
+      auth_type = password
+      user_domain_name = Default
+      auth_url = http://{{hostname_controller}}:5000/v3
+      username = placement
+      password = {{PLACEMENT_PASS}}
+
+- name: Preencher banco de dados do nova-api
+  command: su -s /bin/sh -c "nova-manage api_db sync" nova
+
+- name: Preencher banco de dados do cell0
+  command: su -s /bin/sh -c "nova-manage cell_v2 map_cell0" nova
+
+- name: Criar cell1
+  command: su -s /bin/sh -c "nova-manage cell_v2 create_cell --name=cell1 --verbose" nova
+  ignore_errors: yes
+
+- name: Preencher banco de dados do nova
+  command: su -s /bin/sh -c "nova-manage db sync" nova
+
+- name: Verificar se nova cell0 e cel1 estão registrados corretamente
+  command: su -s /bin/sh -c "nova-manage cell_v2 list_cells" nova
+  register: result_cell
+
+- debug:
+    var: result_cell
+
+- name: Reiniciar o serviço nova-api
+  service:    
+    name: nova-api
+    state: restarted
+
+- name: Reiniciar o serviço nova-scheduler
+  service:    
+    name: nova-scheduler
+    state: restarted
+
+- name: Reiniciar o serviço nova-conductor
+  service:    
+    name: nova-conductor
+    state: restarted
+
+- name: Reiniciar o serviço nova-novncproxy
+  service:    
+    name: nova-novncproxy
+    state: restarted

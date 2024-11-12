@@ -1,0 +1,28 @@
+#!/bin/bash
+
+
+echo 'no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command="echo '\''Please login as the user \"great\" rather than the user \"root\".'\'';echo;sleep 10;exit 142" ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCGC5q1G6GAUgoXK6cmmw0vGM+vFO5NzhKWBcAHWxrswl2DrmkS2uvnZiYe93kwKCYbhFM2lLQTECurGTaSXGTrTJ57JJ8gUVR3MIp2eVLpqhbG9AclA4vkIm/tQ0C+NyyhayrLaMekSkxKc2dffJYzLBBUFCri3kRFg0AyuqujB36COFLzGlPN3JZ15gbUxQc2zSphVcEBerCaIdZ1JqZS7q2RRi1SdbMkNCjtklw0AFwj7DT5dGCdaTXYL8q3mO8F7uPTpxH+fIZEW9BIQdyEsVymhi4yZObmX7/DoDoPZ+l5Hqof1CRNKw0fu2c/mpKSl26z20FNQ/YeSV+/8K+NsTIw55lxCpev0zxbk5qlJvP4uwQve2lJx58YuVpK5vylq8i4RQCnr738TfRWoBIARGVt6yjuNf8gZdTRIzjw6EPbwP4Vpk/Nm1FuAqhXCb0Ttgb/a6uCatwRmjV0JfcN0Uhq/Ze8Ijg5AZ8O2BXfw8+u8gKHLRXZo0Q2NNglRuM= great@great' >> ~/.ssh/authorized_keys
+
+
+
+
+
+
+
+
+echo 'no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command="echo 'Please login as the user \"great\" rather than the user \"root\".';echo;sleep 10;exit 142" ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCGC5q1G6GAUgoXK6cmmw0vGM+vFO5NzhKWBcAHWxrswl2DrmkS2uvnZiYe93kwKCYbhFM2lLQTECurGTaSXGTrTJ57JJ8gUVR3MIp2eVLpqhbG9AclA4vkIm/tQ0C+NyyhayrLaMekSkxKc2dffJYzLBBUFCri3kRFg0AyuqujB36COFLzGlPN3JZ15gbUxQc2zSphVcEBerCaIdZ1JqZS7q2RRi1SdbMkNCjtklw0AFwj7DT5dGCdaTXYL8q3mO8F7uPTpxH+fIZEW9BIQdyEsVymhi4yZObmX7/DoDoPZ+l5Hqof1CRNKw0fu2c/mpKSl26z20FNQ/YeSV+/8K+NsTIw55lxCpev0zxbk5qlJvP4uwQve2lJx58YuVpK5vylq8i4RQCnr738TfRWoBIARGVt6yjuNf8gZdTRIzjw6EPbwP4Vpk/Nm1FuAqhXCb0Ttgb/a6uCatwRmjV0JfcN0Uhq/Ze8Ijg5AZ8O2BXfw8+u8gKHLRXZo0Q2NNglRuM= great@great' >> ~/.ssh/authorized_keys
+
+
+
+
+
+
+
+echo 'no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command="echo '\''Please login as the user \\"great\\" rather than the user \\"root\\".'\'';echo;sleep 10;exit 142" ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCGC5q1G6GAUgoXK6cmmw0vGM+vFO5NzhKWBcAHWxrswl2DrmkS2uvnZiYe93kwKCYbhFM2lLQTECurGTaSXGTrTJ57JJ8gUVR3MIp2eVLpqhbG9AclA4vkIm/tQ0C+NyyhayrLaMekSkxKc2dffJYzLBBUFCri3kRFg0AyuqujB36COFLzGlPN3JZ15gbUxQc2zSphVcEBerCaIdZ1JqZS7q2RRi1SdbMkNCjtklw0AFwj7DT5dGCdaTXYL8q3mO8F7uPTpxH+fIZEW9BIQdyEsVymhi4yZObmX7/DoDoPZ+l5Hqof1CRNKw0fu2c/mpKSl26z20FNQ/YeSV+/8K+NsTIw55lxCpev0zxbk5qlJvP4uwQve2lJx58YuVpK5vylq8i4RQCnr738TfRWoBIARGVt6yjuNf8gZdTRIzjw6EPbwP4Vpk/Nm1FuAqhXCb0Ttgb/a6uCatwRmjV0JfcN0Uhq/Ze8Ijg5AZ8O2BXfw8+u8gKHLRXZo0Q2NNglRuM= great@great' >> ~/.ssh/authorized_keys
+
+
+
+echo 'no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command="echo '\''Please login as the user \"great\" rather than the user \"root\".'\'';echo;sleep 10;exit 142" ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCGC5q1G6GAUgoXK6cmmw0vGM+vFO5NzhKWBcAHWxrswl2DrmkS2uvnZiYe93kwKCYbhFM2lLQTECurGTaSXGTrTJ57JJ8gUVR3MIp2eVLpqhbG9AclA4vkIm/tQ0C+NyyhayrLaMekSkxKc2dffJYzLBBUFCri3kRFg0AyuqujB36COFLzGlPN3JZ15gbUxQc2zSphVcEBerCaIdZ1JqZS7q2RRi1SdbMkNCjtklw0AFwj7DT5dGCdaTXYL8q3mO8F7uPTpxH+fIZEW9BIQdyEsVymhi4yZObmX7/DoDoPZ+l5Hqof1CRNKw0fu2c/mpKSl26z20FNQ/YeSV+/8K+NsTIw55lxCpev0zxbk5qlJvP4uwQve2lJx58YuVpK5vylq8i4RQCnr738TfRWoBIARGVt6yjuNf8gZdTRIzjw6EPbwP4Vpk/Nm1FuAqhXCb0Ttgb/a6uCatwRmjV0JfcN0Uhq/Ze8Ijg5AZ8O2BXfw8+u8gKHLRXZo0Q2NNglRuM= great@great' >> ~/.ssh/authorized_keys
+
+
+no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command="echo 'Please login as the user \"great\" rather than the user \"root\".';echo;sleep 10;exit 142" ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCGC5q1G6GAUgoXK6cmmw0vGM+vFO5NzhKWBcAHWxrswl2DrmkS2uvnZiYe93kwKCYbhFM2lLQTECurGTaSXGTrTJ57JJ8gUVR3MIp2eVLpqhbG9AclA4vkIm/tQ0C+NyyhayrLaMekSkxKc2dffJYzLBBUFCri3kRFg0AyuqujB36COFLzGlPN3JZ15gbUxQc2zSphVcEBerCaIdZ1JqZS7q2RRi1SdbMkNCjtklw0AFwj7DT5dGCdaTXYL8q3mO8F7uPTpxH+fIZEW9BIQdyEsVymhi4yZObmX7/DoDoPZ+l5Hqof1CRNKw0fu2c/mpKSl26z20FNQ/YeSV+/8K+NsTIw55lxCpev0zxbk5qlJvP4uwQve2lJx58YuVpK5vylq8i4RQCnr738TfRWoBIARGVt6yjuNf8gZdTRIzjw6EPbwP4Vpk/Nm1FuAqhXCb0Ttgb/a6uCatwRmjV0JfcN0Uhq/Ze8Ijg5AZ8O2BXfw8+u8gKHLRXZo0Q2NNglRuM= great@great

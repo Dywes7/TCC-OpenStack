@@ -1,0 +1,115 @@
+---
+- name: Instalar pacotes utilitarios de LVM
+  apt: name="{{packages}}" state=latest
+  vars:
+    packages:
+    - lvm2
+    - thin-provisioning-tools
+
+- name: Criar volume físico do LVM
+  shell: pvcreate /dev/{{name_disc_storage_part}} -y
+  register: result
+  ignore_errors: yes
+
+- debug:
+    var: result
+
+- name: Criar volume físico do LVM
+  shell: vgcreate cinder-volumes /dev/{{name_disc_storage_part}}
+  register: result
+  ignore_errors: yes
+
+- debug:
+    var: result
+
+- name: Editar (devices) no arquivo /etc/lvm/lvm.conf
+  lineinfile:
+    path: /etc/lvm/lvm.conf
+    insertafter: '^devices {'
+    line: 'filter = [ "a/{{name_disc_conservar_so}}/", "a/{{name_disc_storage}}/", "r/.*/"]'
+
+- name: Instalar pacotes para o cinder
+  apt: name="{{packages}}" state=latest
+  vars:
+    packages:
+    - cinder-volume
+    - tgt
+
+- name: Editar database no arquivo /etc/cinder/cinder.conf
+  lineinfile:
+    path: /etc/cinder/cinder.conf
+    line: 'connection = mysql+pymysql://cinder:{{CINDER_DBPASS}}@{{hostname_controller}}/cinder'
+    regexp: "(^connection)"
+
+- name: Editar [DEFAULT] (transport_url) no arquivo /etc/cinder/cinder.conf
+  lineinfile:
+    path: /etc/cinder/cinder.conf
+    insertafter: '^\[DEFAULT\]'
+    line: 'transport_url = rabbit://openstack:{{RABBIT_PASS}}@{{hostname_controller}}'
+
+- name: Editar [keystone_authtoken] no /etc/cinder/cinder.conf
+  blockinfile:
+    path: /etc/cinder/cinder.conf
+    marker: "# {mark} start keystone_authtoken"
+    block: |
+      #
+      [keystone_authtoken]
+      service_token_roles = service
+      service_token_roles_required = true
+      www_authenticate_uri = http://{{hostname_controller}}:5000/
+      auth_url = http://{{hostname_controller}}:5000/
+      memcached_servers = {{hostname_controller}}:11211
+      auth_type = password
+      project_domain_name = Default
+      user_domain_name = Default
+      project_name = service
+      username = cinder
+      password = {{CINDER_PASS}}
+
+- name: Editar [DEFAULT] (my_ip) no arquivo /etc/cinder/cinder.conf
+  lineinfile:
+    path: /etc/cinder/cinder.conf
+    insertafter: '^\[DEFAULT\]'
+    line: 'my_ip = {{ ip_storage }}'
+
+- name: Editar [lvm] no /etc/cinder/cinder.conf
+  blockinfile:
+    path: /etc/cinder/cinder.conf
+    marker: "# {mark} start lvm"
+    block: |
+      #
+      [lvm]
+      volume_driver = cinder.volume.drivers.lvm.LVMVolumeDriver
+      volume_group = cinder-volumes
+      target_protocol = iscsi
+      target_helper = tgtadm
+
+- name: Editar [DEFAULT] (glance_api_servers) no arquivo /etc/cinder/cinder.conf
+  lineinfile:
+    path: /etc/cinder/cinder.conf
+    insertafter: '^\[DEFAULT\]'
+    line: 'glance_api_servers = http://{{hostname_controller}}:9292'
+
+- name: Editar [oslo_concurrency] no /etc/cinder/cinder.conf
+  blockinfile:
+    path: /etc/cinder/cinder.conf
+    marker: "# {mark} start oslo_concurrency"
+    block: |
+      #
+      [oslo_concurrency]
+      lock_path = /var/lib/cinder/tmp
+
+- name: Editar arquivo tgt localizado em /etc/tgt/targets.conf
+  lineinfile:
+    path: /etc/tgt/targets.conf
+    line: 'include /var/lib/cinder/volumes/*'
+
+- name: Reiniciar o serviço tgt
+  service:    
+    name: tgt
+    state: restarted
+
+- name: Reiniciar o serviço cinder-volume
+  service:    
+    name: cinder-volume
+    state: restarted

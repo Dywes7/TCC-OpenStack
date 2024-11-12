@@ -1,0 +1,159 @@
+---
+- name: Criar base de dados glance
+  mysql_db:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: glance
+    state: present
+
+- name: Criar usuario e conceder privilegios no localhost
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: glance
+    host: localhost
+    password: "{{GLANCE_DBPASS}}"
+    priv: "glance.*:ALL"
+    state: present
+
+- name: Criar usuario e conceder privilegios para '%' (qualquer host)
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: glance
+    host: '%'
+    password: "{{GLANCE_DBPASS}}"
+    priv: "glance.*:ALL"
+    state: present
+
+- name: Criar user glance
+  command: openstack user create --domain default --password {{GLANCE_PASS}} glance
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Adicionar funcao de admin para usuario glance e ao projeto service
+  command: openstack role add --project service --user glance admin
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar entidade de servico glance
+  command: openstack service create --name glance --description "OpenStack Image" image
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint public para o glance
+  command: openstack endpoint create --region RegionOne image public http://{{hostname_controller}}:9292
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint internal para o glance
+  command: openstack endpoint create --region RegionOne image internal http://{{hostname_controller}}:9292
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint admin para o glance
+  command: openstack endpoint create --region RegionOne image admin http://{{hostname_controller}}:9292
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Instalacao pacote glance
+  apt:
+    name: glance
+    state: latest
+
+- name: Editar database no arquivo /etc/glance/glance-api.conf
+  lineinfile:
+    path: /etc/glance/glance-api.conf
+    line: 'connection = mysql+pymysql://glance:{{GLANCE_DBPASS}}@{{hostname_controller}}/glance'
+    regexp: "(^connection)"
+
+- name: Editar [keystone_authtoken] no /etc/glance/glance-api.conf
+  lineinfile:
+    path: /etc/glance/glance-api.conf
+    insertafter: '^\[keystone_authtoken\]'
+    line: "{{item}}"
+  with_items:
+    - "password = {{GLANCE_PASS}}"
+    - "username = glance"
+    - "project_name = service"
+    - "user_domain_name = Default"
+    - "project_domain_name = Default"
+    - "auth_type = password"
+    - "memcached_servers = {{hostname_controller}}:11211"
+    - "auth_url = http://{{hostname_controller}}:5000"
+    - "www_authenticate_uri  = http://{{hostname_controller}}:5000"
+
+- name: Editar [paste_deploy] no /etc/glance/glance-api.conf
+  lineinfile:
+    path: /etc/glance/glance-api.conf
+    insertafter: '^\[paste_deploy\]'
+    line: "flavor = keystone"
+
+- name: Editar [glance_store] no /etc/glance/glance-api.conf
+  blockinfile:
+    path: /etc/glance/glance-api.conf
+    marker: "# {mark} start glance_store"
+    insertafter: '^\[glance_store\]'
+    block: |
+      stores = file,http
+      default_store = file
+      filesystem_store_datadir = /var/lib/glance/images/
+
+#- name: Obter ID do endpoint public do Glance
+#  shell: openstack endpoint list | awk '/glance.*public/ {print $2}'
+#  environment: "{{vars_admin}}"
+#  register: glance_endpoint_result
+#  changed_when: false
+#  failed_when: false
+#
+#- set_fact:
+#    glance_endpoint_id: "{{ glance_endpoint_result.stdout }}"
+#
+#- debug:
+#    var: glance_endpoint_id
+#
+#- name: Editar [oslo_limit] no /etc/glance/glance-api.conf
+#  blockinfile:
+#    path: /etc/glance/glance-api.conf
+#    marker: "# {mark} start oslo_limit"
+#    insertafter: '^\[oslo_messaging_amqp\]'
+#    block: |
+#      #
+#      [oslo_limit]
+#      auth_url = http://{{hostname_controller}}:5000
+#      auth_type = password
+#      user_domain_id = default
+#      username = glance
+#      system_scope = all
+#      password = {{GLANCE_PASS}}
+#      endpoint_id = {{ glance_endpoint_id }}
+#      region_name = RegionOne
+
+
+- name: Certificar acesso de leitura aos recursos do sistema ao user glance
+  command: openstack role add --user glance --user-domain Default --system all reader
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+    
+- name: Preencher bando de cados do servico glance
+  command: su -s /bin/sh -c "glance-manage db_sync" glance
+    
+- name: Reiniciar o serviço glance-api
+  service:    
+    name: glance-api
+    state: restarted
+
+- name: Baixar imagem cirros
+  get_url:
+    url: http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
+    dest: /root
+
+- name: Fazer upload da imagem para o glance no formato QCOW2
+  command: glance image-create --name "cirros" --file /root/cirros-0.4.0-x86_64-disk.img --disk-format qcow2 --container-format bare --visibility=public
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+        
+        
+        
+        
+        
+        
+        
+        

@@ -1,0 +1,134 @@
+---
+- name: Criar base de dados keystone
+  mysql_db:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: keystone
+    state: present
+
+- name: Criar usuario e conceder privilegios no localhost
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: keystone
+    host: localhost
+    password: "{{KEYSTONE_DBPASS}}"
+    priv: "keystone.*:ALL"
+    state: present
+
+- name: Criar usuario e conceder privilegios para '%' (qualquer host)
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: keystone
+    host: '%'
+    password: "{{KEYSTONE_DBPASS}}"
+    priv: "keystone.*:ALL"
+    state: present
+
+- name: Instalar pacote keystone
+  apt:
+    name: keystone
+    state: latest
+
+- name: Editar database no arquivo /etc/keystone/keystone.conf
+  lineinfile:
+    path: /etc/keystone/keystone.conf
+    line: 'connection = mysql+pymysql://keystone:{{KEYSTONE_DBPASS}}@{{hostname_controller}}/keystone'
+    regexp: "(^connection)"
+
+- name: Editar provider no /etc/keystone/keystone.conf
+  lineinfile:
+    path: /etc/keystone/keystone.conf
+    insertafter: '^\[token\]'
+    line: 'provider = fernet'
+
+- name: Rodar keystone-manage db_sync
+  command: su -s /bin/sh -c "keystone-manage db_sync" keystone
+
+- name: Rodar keystone-manage comando 1
+  command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+
+- name: Rodar keystone-manage comando 2
+  command: keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+
+- name: Iniciarlizar servico de identidade
+  command: keystone-manage bootstrap --bootstrap-password {{ADMIN_PASS}} --bootstrap-admin-url http://{{hostname_controller}}:5000/v3/ --bootstrap-internal-url http://{{hostname_controller}}:5000/v3/ --bootstrap-public-url http://{{hostname_controller}}:5000/v3/ --bootstrap-region-id RegionOne
+
+- name: Editar arquivo do Apache2 /etc/apache2/apache2.conf
+  lineinfile:
+    path: /etc/apache2/apache2.conf
+    state: present
+    line: "ServerName {{hostname_controller}}"
+
+- name: Reiniciar o serviço apache2
+  service:    
+    name: apache2
+    state: restarted
+
+- name: Criar arquivo de variaveis admin
+  file:
+    path: /root/admin-openrc
+    state: touch
+    
+- name: Editar arquivo /root/admin-openrc
+  lineinfile:
+    dest: /root/admin-openrc
+    state: present
+    line: "{{item}}"
+  with_items:
+    - export OS_PROJECT_DOMAIN_NAME=Default
+    - export OS_USER_DOMAIN_NAME=Default
+    - export OS_PROJECT_NAME=admin
+    - export OS_USERNAME=admin
+    - export OS_PASSWORD={{ADMIN_PASS}}
+    - export OS_AUTH_URL=http://{{hostname_controller}}:5000/v3
+    - export OS_IDENTITY_API_VERSION=3
+    - export OS_IMAGE_API_VERSION=2
+
+- name: Criar domínio de exemplo
+  command: openstack domain create --description "An Example Domain" example
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar projeto service
+  command: openstack project create --domain default --description "Service Project" service
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar projeto myproject
+  command: openstack project create --domain default --description "Demo Project" myproject
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar user myuser
+  command: openstack user create --domain default --password {{MYUSER_PASS}} myuser
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar role myrole
+  command: openstack role create myrole
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Adicionar funcao myrole ao projeto myser
+  command: openstack role add --project myproject --user myuser myrole
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar arquivo de variaveis demo
+  file:
+    path: /root/demo-openrc
+    state: touch
+    
+- name: Editar arquivo /root/demo-openrc
+  lineinfile:
+    dest: /root/demo-openrc
+    state: present
+    line: "{{item}}"
+  with_items:
+    - export OS_PROJECT_DOMAIN_NAME=Default
+    - export OS_USER_DOMAIN_NAME=Default
+    - export OS_PROJECT_NAME=myproject
+    - export OS_USERNAME=myuser
+    - export OS_PASSWORD={{MYUSER_PASS}}
+    - export OS_AUTH_URL=http://{{hostname_controller}}:5000/v3
+    - export OS_IDENTITY_API_VERSION=3
+    - export OS_IMAGE_API_VERSION=2

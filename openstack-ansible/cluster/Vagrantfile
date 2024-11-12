@@ -1,0 +1,28 @@
+Vagrant.configure("2") do |config|
+    config.vm.provision "shell", inline: "echo Init OpenStack cluster"
+    config.vm.define "controller" do |controller|
+        controller.vm.box = "bento/ubuntu-22.04"
+        controller.vm.hostname = "controller"
+        controller.vm.network "private_network", ip: "192.168.56.2"
+        controller.vm.network "forwarded_port", guest: 80, host: 80
+        controller.vm.provision "shell", path: "provision.sh"
+        controller.vbguest.auto_update = false
+    end
+
+    config.vm.define "compute1" do |compute1|
+        compute1.vm.box = "bento/ubuntu-22.04"
+        compute1.vm.hostname = "compute1"
+        compute1.vm.network "private_network", ip: "192.168.56.3"
+        compute1.vm.provision "shell", path: "provision.sh"
+        compute1.vbguest.auto_update = false
+    end
+
+    config.vm.define "compute2" do |compute2|
+        compute2.vm.box = "bento/ubuntu-22.04"
+        compute2.vm.hostname = "compute2"
+        compute2.vm.network "private_network", ip: "192.168.56.4"
+        compute2.vm.provision "shell", path: "provision.sh"
+        compute2.vbguest.auto_update = false
+    end
+
+end

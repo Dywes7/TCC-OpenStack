@@ -1,0 +1,13 @@
+---
+- name: Editar /etc/chrony/chrony.conf adicionado o servidor de horas do nó controlador
+  lineinfile:
+    path: /etc/chrony/chrony.conf
+    state: present
+    line: "{{item}}"
+  with_items:
+        - server {{hostname_controller}} iburst
+      
+- name: Reiniciar o serviço chrony
+  service:    
+    name: chrony
+    state: restarted  # reiniciar serviço

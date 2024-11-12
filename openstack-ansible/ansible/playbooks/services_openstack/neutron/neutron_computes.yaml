@@ -1,0 +1,97 @@
+---
+- name: Instalacao pacote neutron-openvswitch-agent
+  apt:
+    name: neutron-openvswitch-agent
+    state: latest
+
+- name: Editar [DEFAULT] (transport_url) no arquivo /etc/neutron/neutron.conf
+  lineinfile:
+    path: /etc/neutron/neutron.conf
+    regexp: '^#transport_url = rabbit:'
+    line: 'transport_url = rabbit://openstack:{{RABBIT_PASS}}@{{hostname_controller}}'
+
+- name: Editar [DEFAULT] (auth_strategy) no arquivo /etc/neutron/neutron.conf
+  lineinfile:
+    path: /etc/neutron/neutron.conf
+    regexp: '^#auth_strategy'
+    line: 'auth_strategy = keystone'
+
+- name: Editar [keystone_authtoken] no /etc/neutron/neutron.conf
+  blockinfile:
+    path: /etc/neutron/neutron.conf
+    marker: "# {mark} start keystone_authtoken"
+    insertafter: '^\[keystone_authtoken\]'
+    block: |
+      www_authenticate_uri = http://{{hostname_controller}}:5000/
+      auth_url = http://{{hostname_controller}}:5000/
+      memcached_servers = {{hostname_controller}}:11211
+      auth_type = password
+      project_domain_name = Default
+      user_domain_name = Default
+      project_name = service
+      username = neutron
+      password = {{NEUTRON_PASS}}
+
+- name: Editar [oslo_concurrency] no arquivo /etc/neutron/neutron.conf
+  lineinfile:
+    path: /etc/neutron/neutron.conf
+    regexp: '^#lock_path'
+    line: 'lock_path = /var/lib/neutron/tmp'
+
+- name: Editar [ovs] no arquivo /etc/neutron/plugins/ml2/openvswitch_agent.ini
+  lineinfile:
+    path: /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    regexp: '^#bridge_mappings'
+    line: 'bridge_mappings = provider:{{name_nic_computes}}'
+
+- name: Coletar fatos da interface rede
+  ansible.builtin.setup:
+  register: network_facts
+
+- name: Adicionar [vxlan] no /etc/neutron/plugins/ml2/openvswitch_agent.ini
+  blockinfile:
+    path: /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    marker: "# {mark} start vxlan"
+    block: |
+      [vxlan]
+      local_ip = {{ nic }}
+      l2_population = true
+
+- name: Editar [securitygroup] (enable_security_group) no arquivo /etc/neutron/plugins/ml2/openvswitch_agent.ini
+  lineinfile:
+    path: /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    regexp: '^#enable_security_group'
+    line: 'enable_security_group = true'
+
+- name: Editar [securitygroup] (firewall_driver) no arquivo /etc/neutron/plugins/ml2/openvswitch_agent.ini
+  lineinfile:
+    path: /etc/neutron/plugins/ml2/openvswitch_agent.ini 
+    regexp: '^#firewall_driver'
+    line: 'firewall_driver = openvswitch'
+
+
+- name: Editar [neutron] no /etc/nova/nova.conf
+  blockinfile:
+    path: /etc/nova/nova.conf
+    marker: "# {mark} start neutron"
+    insertafter: '^\[neutron\]'
+    block: |
+      auth_url = http://{{hostname_controller}}:5000
+      auth_type = password
+      project_domain_name = Default
+      user_domain_name = Default
+      region_name = RegionOne
+      project_name = service
+      username = neutron
+      password = {{NEUTRON_PASS}}
+
+- name: Reiniciar o serviço nova-compute
+  service:    
+    name: nova-compute
+    state: restarted
+    
+- name: Reiniciar o serviço neutron-openvswitch-agent
+  service:    
+    name: neutron-openvswitch-agent
+    state: restarted
+    

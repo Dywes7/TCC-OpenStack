@@ -1,0 +1,51 @@
+python3 /usr/share/openstack-dashboard/manage.py compress --force
+
+systemctl restart apache2
+
+
+
+
+
+/usr/share/openstack-dashboard/openstack_dashboard/static/dashboard/img/nuvem_great216.png
+
+/usr/share/openstack-dashboard/openstack_dashboard/static/dashboard/img/great_openstack.png
+
+
+
+
+
+
+
+
+
+
+/var/lib/openstack-dashboard/static/themes/ubuntu/img/image-background-pattern.png
+/usr/lib/python3/dist-packages/openstack_dashboard/themes/ubuntu/img/image-background-pattern.png
+
+
+
+*FUNCIONOU NO TEMA UBUNTU*
+/usr/lib/python3/dist-packages/openstack_dashboard/themes/ubuntu/_styles.scss
+
+
+*COLOCAR IMAGENS*
+/var/lib/openstack-dashboard/static/themes/ubuntu/img
+
+
+
+
+/usr/lib/python3/dist-packages/openstack_dashboard/themes/ubuntu/_styles.scss
+
+/static/themes/ubuntu/img/logo-canonical-openstack-splash.svg
+
+
+*alterou a de dentro, após login"
+logo-canonical-openstack-linear.svg
+
+
+*a do login*
+logo-canonical-openstack-splash.svg
+
+
+color hexadecimal
+#0051aa

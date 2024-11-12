@@ -1,0 +1,33 @@
+Instance-id: 7d90f5bd-1168-4991-b62b-18195667dc98
+tenant-id (id-project): 78e6068a13ac49338d8c43dec0885ef9
+Shared-secret: j09trmX2xanu
+
+
+************************SCRIPT****************************
+import hmac
+import hashlib
+
+# Chave compartilhada encontrada no arquivo de configuração do Nova
+shared_secret = b'j09trmX2xanu'  # prefixe com b para indicar uma string de bytes em Python 3
+
+# ID da instância
+instance_id = '7d90f5bd-1168-4991-b62b-18195667dc98'
+
+# Gera o x-instance-id-signature usando HMAC com SHA256
+signature = hmac.new(shared_secret, instance_id.encode(), hashlib.sha256).hexdigest()
+
+print(signature)
+
+
+*****************************************************************************
+    
+    
+    
+    
+    
+    curl \
+  -H 'x-instance-id: 7d90f5bd-1168-4991-b62b-18195667dc98' \
+  -H 'x-tenant-id: 78e6068a13ac49338d8c43dec0885ef9' \
+  -H 'x-instance-id-signature: eb38892c8c09d848d63252f6d187d940307737b0910eaa0e2b02512696ab820c' \
+  http://localhost:8775/latest/meta-data
+  

@@ -1,0 +1,93 @@
+---
+- name: Criar base de dados placement
+  mysql_db:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: placement
+    state: present
+    
+- name: Criar usuario e conceder privilegios no localhost
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: placement
+    host: localhost
+    password: "{{PLACEMENT_DBPASS}}"
+    priv: "placement.*:ALL"
+    state: present
+
+- name: Criar usuario e conceder privilegios para '%' (qualquer host)
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: placement
+    host: '%'
+    password: "{{PLACEMENT_DBPASS}}"
+    priv: "placement.*:ALL"
+    state: present
+    
+- name: Criar user placement do openstack 
+  command: openstack user create --domain default --password {{PLACEMENT_PASS}} placement
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+    
+- name: Adicionar funcao de admin para usuario placement e ao projeto service
+  command: openstack role add --project service --user placement admin
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar entidade de servico placement
+  command: openstack service create --name placement --description "Placement API" placement
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint public para o placement
+  command: openstack endpoint create --region RegionOne placement public http://{{hostname_controller}}:8778
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint internal para o placement
+  command: openstack endpoint create --region RegionOne placement internal http://{{hostname_controller}}:8778
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint admin para o placement
+  command: openstack endpoint create --region RegionOne placement admin http://{{hostname_controller}}:8778
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Instalacao pacote placement-api
+  apt:
+    name: placement-api
+    state: latest
+
+- name: Editar [placement_database] no arquivo /etc/placement/placement.conf
+  lineinfile:
+    path: /etc/placement/placement.conf
+    line: 'connection = mysql+pymysql://placement:{{PLACEMENT_DBPASS}}@{{hostname_controller}}/placement'
+    regexp: "(^connection)"
+    
+- name: Editar [api] no arquivo /etc/placement/placement.conf
+  lineinfile:
+    path: /etc/placement/placement.conf
+    line: 'auth_strategy = keystone'
+    regexp: "(^#auth_strategy)"
+
+- name: Editar [keystone_authtoken] no /etc/placement/placement.conf
+  blockinfile:
+    path: /etc/placement/placement.conf
+    insertafter: '^\[keystone_authtoken\]'
+    block: |
+      auth_url = http://{{hostname_controller}}:5000/v3
+      memcached_servers = {{hostname_controller}}:11211
+      auth_type = password
+      project_domain_name = Default
+      user_domain_name = Default
+      project_name = service
+      username = placement
+      password = {{PLACEMENT_PASS}}
+    
+- name: Preencher bando de dados do servico placement
+  command: su -s /bin/sh -c "placement-manage db sync" placement
+
+- name: Reiniciar o serviço apache2
+  service:    
+    name: apache2
+    state: restarted

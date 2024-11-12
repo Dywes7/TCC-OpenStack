@@ -1,0 +1,63 @@
+virt-customize -a ubuntu-23-04.qcow2 --install qemu-guest-agent
+virt-customize -a ubuntu-23-04.qcow2 --run-command 'apt-get update'
+virt-customize -a ubuntu-23-04.qcow2 --run-command 'apt-get upgrade -y' 
+virt-customize -a ubuntu-23-04.qcow2 --run-command 'adduser test'
+virt-customize -a ubuntu-23-04.qcow2 --run-command 'echo "test:test22" | chpasswd'
+virt-customize -a ubuntu-23-04.qcow2 --run-command 'adduser test sudo' 
+
+Resize Image:
+qemu-img resize ubuntu-23-04.qcow2 10G
+
+
+
+
+apt install libguestfs-tools -y
+
+virt-customize -a noble-server-cloudimg-amd64.img --install qemu-guest-agent
+virt-customize -a noble-server-cloudimg-amd64.img --run-command 'apt-get update'
+virt-customize -a noble-server-cloudimg-amd64.img --run-command 'adduser test'
+virt-customize -a noble-server-cloudimg-amd64.img --run-command 'echo "test:test" | chpasswd'
+virt-customize -a noble-server-cloudimg-amd64.img --run-command 'adduser test sudo'
+virt-customize -a noble-server-cloudimg-amd64.img --run-command 'echo "ubuntu:ubuntu" | chpasswd'
+
+
+*UBUNTU*
+# virt-customize -a noble-server-cloudimg-amd64.img --install qemu-guest-agent
+# virt-customize -a noble-server-cloudimg-amd64.img --run-command 'adduser great'
+# virt-customize -a noble-server-cloudimg-amd64.img --run-command 'echo "great:great" | chpasswd'
+# virt-customize -a noble-server-cloudimg-amd64.img --run-command 'adduser great sudo'
+
+*DEBIAN*
+# virt-customize -a debian-10-openstack-amd64.qcow2 --install qemu-guest-agent
+# virt-customize -a debian-10-openstack-amd64.qcow2 --run-command 'adduser great'
+# virt-customize -a debian-10-openstack-amd64.qcow2 --run-command 'echo "great:great" | chpasswd'
+# virt-customize -a debian-10-openstack-amd64.qcow2 --run-command 'adduser great sudo'
+
+*CENTOS7*
+# virt-customize -a CentOS-7-x86_64-GenericCloud.qcow2 --install qemu-guest-agent
+# virt-customize -a CentOS-7-x86_64-GenericCloud.qcow2 --run-command 'adduser great'
+# virt-customize -a CentOS-7-x86_64-GenericCloud.qcow2 --run-command 'echo "great:great" | chpasswd'
+# virt-customize -a CentOS-7-x86_64-GenericCloud.qcow2 --run-command 'usermod -aG wheel great'
+
+# virt-customize -a CentOS-7-x86_64-GenericCloud.qcow2 --run-command 'echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers.d/99-wheel'
+
+
+GRT@cloud#@!
+
+
+# virt-customize -a noble-server-cloudimg-amd64.img --install qemu-guest-agent
+# virt-customize -a noble-server-cloudimg-amd64.img --run-command 'echo "ubuntu:GRT@cloud#@!" | chpasswd'
+
+
+
+chpasswd: (user ubuntu) pam_chauthtok() failed, error:
+Authentication token manipulation error
+chpasswd: (line 1, user ubuntu) password not changed
+virt-customize: error: echo "ubuntu:GRT@cloud#@!" | chpasswd: command 
+exited with an error
+
+If reporting bugs, run virt-customize with debugging enabled and include 
+the complete output:
+
+  virt-customize -v -x [...]
+

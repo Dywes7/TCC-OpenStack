@@ -1,0 +1,4 @@
+---
+- name: Rebootar sistema
+  command: reboot
+  ignore_errors: yes

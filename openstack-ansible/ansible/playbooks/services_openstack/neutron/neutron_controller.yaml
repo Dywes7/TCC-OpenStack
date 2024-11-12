@@ -1,0 +1,291 @@
+---
+- name: Criar base de dados neutron
+  mysql_db:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: neutron
+    state: present
+
+- name: Criar usuario e conceder privilegios no localhost
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: neutron
+    host: localhost
+    password: "{{NEUTRON_DBPASS}}"
+    priv: "neutron.*:ALL"
+    state: present
+
+- name: Criar usuario e conceder privilegios para '%' (qualquer host)
+  mysql_user:
+    login_unix_socket: "{{path_sql_socket}}"
+    name: neutron
+    host: '%'
+    password: "{{NEUTRON_DBPASS}}"
+    priv: "neutron.*:ALL"
+    state: present
+
+- name: Criar user neutron
+  command: openstack user create --domain default --password {{NEUTRON_PASS}} neutron
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Adicionar funcao de admin para usuario neutron e ao projeto service
+  command: openstack role add --project service --user neutron admin
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar entidade de servico neutron
+  command: openstack service create --name neutron --description "OpenStack Networking" network
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint public para o neutron
+  command: openstack endpoint create --region RegionOne network public http://{{hostname_controller}}:9696
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint internal para o neutron
+  command: openstack endpoint create --region RegionOne network internal http://{{hostname_controller}}:9696
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Criar endpoint admin para o neutron
+  command: openstack endpoint create --region RegionOne network admin http://{{hostname_controller}}:9696
+  environment: "{{vars_admin}}"
+  ignore_errors: yes
+
+- name: Instalar pacotes para o neutron
+  apt: name="{{packages}}" state=latest
+  vars:
+    packages:
+    - neutron-server
+    - neutron-plugin-ml2
+    - neutron-openvswitch-agent
+    - neutron-l3-agent
+    - neutron-dhcp-agent
+    - neutron-metadata-agent
+
+- name: Editar database no arquivo /etc/neutron/neutron.conf
+  lineinfile:
+    path: /etc/neutron/neutron.conf
+    line: 'connection = mysql+pymysql://neutron:{{NEUTRON_DBPASS}}@{{hostname_controller}}/neutron'
+    regexp: "(^connection)"
+
+- name: Editar [DEFAULT] (service_plugins) no arquivo /etc/neutron/neutron.conf
+  blockinfile:
+    path: /etc/neutron/neutron.conf
+    marker: "# {mark} start DEFAULT"
+    insertafter: "^core_plugin = ml2"
+    block: |
+      service_plugins = router
+
+- name: Editar [DEFAULT] (transport_url) no arquivo /etc/neutron/neutron.conf
+  lineinfile:
+    path: /etc/neutron/neutron.conf
+    regexp: '^#transport_url = rabbit:'
+    line: 'transport_url = rabbit://openstack:{{RABBIT_PASS}}@{{hostname_controller}}'
+
+- name: Editar [DEFAULT] (auth_strategy) no arquivo /etc/neutron/neutron.conf
+  lineinfile:
+    path: /etc/neutron/neutron.conf
+    regexp: '^#auth_strategy'
+    line: 'auth_strategy = keystone'
+
+- name: Editar [keystone_authtoken] no /etc/neutron/neutron.conf
+  blockinfile:
+    path: /etc/neutron/neutron.conf
+    marker: "# {mark} start keystone_authtoken"
+    insertafter: '^\[keystone_authtoken\]'
+    block: |
+      www_authenticate_uri = http://{{hostname_controller}}:5000/
+      auth_url = http://{{hostname_controller}}:5000/
+      memcached_servers = {{hostname_controller}}:11211
+      auth_type = password
+      project_domain_name = Default
+      user_domain_name = Default
+      project_name = service
+      username = neutron
+      password = {{NEUTRON_PASS}}
+
+- name: Editar [DEFAULT] no arquivo /etc/neutron/neutron.conf
+  lineinfile:
+    path: /etc/neutron/neutron.conf
+    regexp: '^#notify_nova_on_port_status_changes'
+    line: 'notify_nova_on_port_status_changes = true'
+
+- name: Editar [DEFAULT] no arquivo /etc/neutron/neutron.conf
+  lineinfile:
+    path: /etc/neutron/neutron.conf
+    regexp: '^#notify_nova_on_port_data_changes'
+    line: 'notify_nova_on_port_data_changes = true'
+
+- name: Editar [nova] no /etc/neutron/neutron.conf
+  blockinfile:
+    path: /etc/neutron/neutron.conf
+    marker: "# {mark} start nova"
+    insertafter: '^\[nova\]'
+    block: |
+      auth_url = http://{{hostname_controller}}:5000
+      auth_type = password
+      project_domain_name = Default
+      user_domain_name = Default
+      region_name = RegionOne
+      project_name = service
+      username = nova
+      password = {{NOVA_PASS}}
+
+- name: Editar [oslo_concurrency] no arquivo /etc/neutron/neutron.conf
+  lineinfile:
+    path: /etc/neutron/neutron.conf
+    regexp: '^#lock_path'
+    line: 'lock_path = /var/lib/neutron/tmp'
+
+- name: Editar [ml2] (type_drivers) no arquivo /etc/neutron/plugins/ml2/ml2_conf.ini
+  lineinfile:
+    path: /etc/neutron/plugins/ml2/ml2_conf.ini
+    regexp: '^#type_drivers'
+    line: 'type_drivers = flat,vlan,vxlan,local'
+
+- name: Editar [ml2] (tenant_network_types) no arquivo /etc/neutron/plugins/ml2/ml2_conf.ini
+  lineinfile:
+    path: /etc/neutron/plugins/ml2/ml2_conf.ini
+    regexp: '^#tenant_network_types'
+    line: 'tenant_network_types = vxlan'
+
+- name: Editar [ml2] (mechanism_drivers) no arquivo /etc/neutron/plugins/ml2/ml2_conf.ini
+  lineinfile:
+    path: /etc/neutron/plugins/ml2/ml2_conf.ini
+    regexp: '^#mechanism_drivers'
+    line: 'mechanism_drivers = openvswitch,l2population'
+
+- name: Editar [ml2_type_flat] (flat_newtworks) no arquivo /etc/neutron/plugins/ml2/ml2_conf.ini
+  lineinfile:
+    path: /etc/neutron/plugins/ml2/ml2_conf.ini
+    regexp: '^#flat_networks'
+    line: 'flat_networks = provider'
+
+- name: Editar [ml2] (extension_drivers) no arquivo /etc/neutron/plugins/ml2/ml2_conf.ini
+  lineinfile:
+    path: /etc/neutron/plugins/ml2/ml2_conf.ini
+    regexp: '^#extension_drivers'
+    line: 'extension_drivers = port_security'
+
+- name: Editar [ml2_type_vxlan] (vni_ranges) no arquivo /etc/neutron/plugins/ml2/ml2_conf.ini
+  blockinfile:
+    path: /etc/neutron/plugins/ml2/ml2_conf.ini
+    marker: "# {mark} start ml2_type_vxlan"
+    insertafter: '^\[ml2_type_vxlan\]'
+    block: |
+      vni_ranges = 1:1000
+
+- name: Editar [ovs] no arquivo /etc/neutron/plugins/ml2/openvswitch_agent.ini
+  lineinfile:
+    path: /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    regexp: '^#bridge_mappings'
+    line: 'bridge_mappings = provider:{{name_nic_controller}}'
+
+- name: Adicionar [vxlan] no /etc/neutron/plugins/ml2/openvswitch_agent.ini
+  blockinfile:
+    path: /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    marker: "# {mark} start vxlan"
+    block: |
+      [vxlan]
+      local_ip = {{ip_provider_network_controller}}
+      l2_population = true
+
+- name: Editar [securitygroup] (enable_security_group) no arquivo /etc/neutron/plugins/ml2/openvswitch_agent.ini
+  lineinfile:
+    path: /etc/neutron/plugins/ml2/openvswitch_agent.ini
+    regexp: '^#enable_security_group'
+    line: 'enable_security_group = true'
+
+- name: Editar [securitygroup] (firewall_driver) no arquivo /etc/neutron/plugins/ml2/openvswitch_agent.ini
+  lineinfile:
+    path: /etc/neutron/plugins/ml2/openvswitch_agent.ini 
+    regexp: '^#firewall_driver'
+    line: 'firewall_driver = openvswitch'
+
+- name: Editar [DEFAULT] (interface_driver) no arquivo /etc/neutron/l3_agent.ini
+  lineinfile:
+    path: /etc/neutron/l3_agent.ini
+    regexp: '^#interface_driver'
+    line: 'interface_driver = openvswitch'
+
+- name: Editar [DEFAULT] (interface_driver) no arquivo /etc/neutron/dhcp_agent.ini
+  lineinfile:
+    path: /etc/neutron/dhcp_agent.ini
+    regexp: '^#interface_driver'
+    line: 'interface_driver = openvswitch'
+
+- name: Editar [DEFAULT] (dhcp_driver) no arquivo /etc/neutron/dhcp_agent.ini
+  lineinfile:
+    path: /etc/neutron/dhcp_agent.ini
+    regexp: '^#dhcp_driver'
+    line: 'dhcp_driver = neutron.agent.linux.dhcp.Dnsmasq'
+
+- name: Editar [DEFAULT] (enable_isolated_metadata) no arquivo /etc/neutron/dhcp_agent.ini
+  lineinfile:
+    path: /etc/neutron/dhcp_agent.ini
+    regexp: '^#enable_isolated_metadata'
+    line: 'enable_isolated_metadata = true'
+
+- name: Editar [DEFAULT] (nova_metadata_host) no arquivo /etc/neutron/metadata_agent.ini
+  lineinfile:
+    path: /etc/neutron/metadata_agent.ini
+    regexp: '^#nova_metadata_host'
+    line: 'nova_metadata_host = {{hostname_controller}}'
+
+- name: Editar [DEFAULT] (nova_metadata_host) no arquivo /etc/neutron/metadata_agent.ini
+  lineinfile:
+    path: /etc/neutron/metadata_agent.ini
+    regexp: '^#metadata_proxy_shared_secret'
+    line: 'metadata_proxy_shared_secret = {{METADATA_SECRET}}'
+
+- name: Editar [neutron] no /etc/nova/nova.conf
+  blockinfile:
+    path: /etc/nova/nova.conf
+    marker: "# {mark} start neutron"
+    insertafter: '^\[neutron\]'
+    block: |
+      auth_url = http://{{hostname_controller}}:5000
+      auth_type = password
+      project_domain_name = Default
+      user_domain_name = Default
+      region_name = RegionOne
+      project_name = service
+      username = neutron
+      password = {{NEUTRON_PASS}}
+      service_metadata_proxy = true
+      metadata_proxy_shared_secret = {{METADATA_SECRET}}
+
+- name: Preencher bando de dados
+  command: su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron
+
+- name: Reiniciar o serviço nova-api
+  service:    
+    name: nova-api
+    state: restarted
+
+- name: Reiniciar o serviço neutron-server
+  service:    
+    name: neutron-server
+    state: restarted
+
+- name: Reiniciar o serviço neutron-openvswitch-agent
+  service:    
+    name: neutron-openvswitch-agent
+    state: restarted
+
+- name: Reiniciar o serviço neutron-dhcp-agent
+  service:    
+    name: neutron-dhcp-agent
+    state: restarted
+
+- name: Reiniciar o serviço neutron-metadata-agent
+  service:    
+    name: neutron-metadata-agent
+    state: restarted
+
+- name: Reiniciar o serviço neutron-l3-agent
+  service:    
+    name: neutron-l3-agent
+    state: restarted
