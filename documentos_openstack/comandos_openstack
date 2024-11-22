@@ -170,4 +170,17 @@ block_device_allocate_retries_interval = 10
 Erro: Falha na execução da operação solicitada na instância "kali-teste-03", a instância tem um status de erro: Por favor tente novamente mais tarde [Erro: Build of instance 09eb4e9d-cd49-424a-ab18-07e09c7f0391 aborted: Volume 0bfde34c-998f-4523-a9ce-259537390b03 did not finish being created even after we waited 188 seconds or 61 attempts. And its status is downloading.].
 
 
+*******************************************************
+CRIAR ARQUIVO E ALTERAR NOME DA INTERFACE DE REDE
+vim /etc/udev/rules.d/00-network-rename.rules 
+SUBSYSTEM=="net", ACTION=="add", ATTR{address}=="7a:05:06:e0:6c:cf", NAME="eno1"
 
+
+
+/etc/netplan/00-installer-config.yaml
+Alterar nome da interface de rede
+
+
+
+
+64:1c:67:cd:0c:0d
