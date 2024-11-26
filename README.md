@@ -4,7 +4,7 @@
 
 1. EDITAR ARQUIVO 'pre_requisitos/pre_requisitos1.yaml' e inserir linhas "{{ip_computex}} {{hostname_computex}}" para novos computes 
 
-2. Adicioanr novas variáveis em vars/main.yaml adicionando nova variável para 'hostname_computex' e 'ip_computex' inserindo o hostname e ip
+2. Adicionar novas variáveis em vars/main.yaml adicionando nova variável para 'hostname_computex' e 'ip_computex' inserindo o hostname e ip
 
 3. Adicionar hosts no servidor ansible em /etc/ansible/hosts
 
