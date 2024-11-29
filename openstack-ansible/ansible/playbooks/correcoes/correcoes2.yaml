@@ -1,0 +1,12 @@
+---
+- name: Editar no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#block_device_allocate_retries ='
+    line: 'block_device_allocate_retries = 300'
+
+- name: Editar no arquivo /etc/nova/nova.conf
+  lineinfile:
+    path: /etc/nova/nova.conf
+    regexp: '^#block_device_allocate_retries_interval ='
+    line: 'block_device_allocate_retries_interval = 10'

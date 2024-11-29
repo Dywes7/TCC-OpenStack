@@ -1,169 +1,158 @@
 ---
-- name: Pre instalar requisitos para o cluster OpenStack
-  hosts: cluster
-
-  user: great
-  become: yes
-
-  vars_files:            # arquivo que contém variaveis
-    - vars/main.yaml
-
-  tasks:
-    - name: Chamar aquivo de instalacao do Keystone
-      include_tasks: pre_requisitos/pre_requisitos1.yaml
-
-
-- name: Configurar servidor de horas no Controller
-  hosts: controller
-
-  user: great
-  become: yes
-
-  vars_files:            # arquivo que contém variaveis
-   - vars/main.yaml
-
-  tasks:
-    - name: Chamar aquivo de instalacao do Keystone
-      include_tasks: pre_requisitos/pre_requisitos2.yaml
-
-
-- name: Configurar servidor de horas nos Computes
-  hosts: computes
-
-  user: great
-  become: yes
-
-  vars_files:            # arquivo que contém variaveis
-   - vars/main.yaml
-
-  tasks:
-    - name: Chamar aquivo de instalacao do Keystone
-      include_tasks: pre_requisitos/pre_requisitos3.yaml
-
-
-- name: Instalar dependencias para Cloud Openstack
-  hosts: cluster
-
-  user: great
-  become: yes
-
-  tasks:
-    - name: Chamar aquivo de instalacao do Keystone
-      include_tasks: pre_requisitos/pre_requisitos4.yaml
-
-
-- name: Instalar/Configurar SQL, MessageQueue, Memcached e Etcd no controller
-  hosts: controller
-
-  user: great
-  become: yes
-
-  vars_files:            # arquivo que contém variaveis
-   - vars/main.yaml
-   - vars/pass.yaml
-
-  tasks:
-    - name: Chamar aquivo de instalacao do Keystone
-      include_tasks: pre_requisitos/pre_requisitos5.yaml
-
-
-# Installation minimal deployment Openstack (Controller) parte 1
-- name: Instalação serviços Openstack (Controller) parte 1
-  hosts: controller
-  user: great
-  become: yes
-  
-  vars_files:
-   - vars/main.yaml
-   - vars/pass.yaml
-   - vars/adm_openstack.yaml
-  tasks:
-  # Instalacao Keystone
-     - name: Chamar aquivo de instalacao do Keystone
-       include_tasks: services_openstack/keystone.yaml
-   # Instalacao Glance
-     - name: Chamar arquivo de instalacao do Glance
-       include_tasks: services_openstack/glance.yaml
-   # Instalacao Placement
-     - name: Chamar arquivo de instalacao do Placement
-       include_tasks: services_openstack/placement.yaml
-   # Instalacao Nova (Controller)
-     - name: Chamar arquivo de instalacao do Nova no controller
-       include_tasks: services_openstack/nova/nova_controller.yaml
- 
- # Instalacao Nova Compute Openstack (Computes)
-- name: Instalação Nova Compute (Computes)
-  hosts: computes
-
-  user: great
-  become: yes
-  
-  vars_files:
-   - vars/main.yaml
-   - vars/pass.yaml
-   - vars/adm_openstack.yaml
-
-  tasks:
-    - name: Chamar arquivo de instalacao do Nova no compute
-      include_tasks: services_openstack/nova/nova_computes.yaml
-
-    
-# Adicionando compute nodes to the cell database
-- name: Adicionando nós compute a base de dados cell
-  hosts: controller
-
-  user: great
-  become: yes
-  
-  vars_files:
-   - vars/main.yaml
-   - vars/pass.yaml
-   - vars/adm_openstack.yaml
-
-  tasks:
-    - name: Chamar arquivo para adicioanr nós de computacao a database
-      include_tasks: services_openstack/nova/add_nodecompute.yaml
-
-
- # Instanlando Neutron no Controller
-- name: Instalacao do neutron no controller
-  hosts: controller
-
-  user: great
-  become: yes
-  
-  vars_files:
-   - vars/main.yaml
-   - vars/pass.yaml
-   - vars/adm_openstack.yaml
-
-  tasks:
-    - name: Chamar arquivo para instalacao do neutron no controller
-      include_tasks: services_openstack/neutron/neutron_controller.yaml
-
-
- # Instanlando Neutron nos Computes
-- name: Instalacao do neutron nos Computes
-  hosts: computes
-
-  user: great
-  become: yes
-  
-  vars_files:
-   - vars/main.yaml
-   - vars/pass.yaml
-   - vars/adm_openstack.yaml
-
-  tasks:
-    - name: Chamar arquivo para instalacao do neutron nos Computes
-      include_tasks: services_openstack/neutron/neutron_computes.yaml
+#- name: Pre instalar requisitos para o cluster OpenStack
+#  hosts: cluster
+#
+#  become: yes
+#
+#  vars_files:            # arquivo que contém variaveis
+#    - vars/main.yaml
+#
+#  tasks:
+#    - name: Chamar aquivo de instalacao do Keystone
+#      include_tasks: pre_requisitos/pre_requisitos1.yaml
+#
+#
+#- name: Configurar servidor de horas no Controller
+#  hosts: controller
+#
+#  become: yes
+#
+#  vars_files:            # arquivo que contém variaveis
+#   - vars/main.yaml
+#
+#  tasks:
+#    - name: Chamar aquivo de instalacao do Keystone
+#      include_tasks: pre_requisitos/pre_requisitos2.yaml
+#
+#
+#- name: Configurar servidor de horas nos Computes
+#  hosts: computes
+#
+#  become: yes
+#
+#  vars_files:            # arquivo que contém variaveis
+#   - vars/main.yaml
+#
+#  tasks:
+#    - name: Chamar aquivo de instalacao do Keystone
+#      include_tasks: pre_requisitos/pre_requisitos3.yaml
+#
+#
+#- name: Instalar dependencias para Cloud Openstack
+#  hosts: cluster
+#
+#  become: yes
+#
+#  tasks:
+#    - name: Chamar aquivo de instalacao do Keystone
+#      include_tasks: pre_requisitos/pre_requisitos4.yaml
+#
+#
+#- name: Instalar/Configurar SQL, MessageQueue, Memcached e Etcd no controller
+#  hosts: controller
+#
+#  become: yes
+#
+#  vars_files:            # arquivo que contém variaveis
+#   - vars/main.yaml
+#   - vars/pass.yaml
+#
+#  tasks:
+#    - name: Chamar aquivo de instalacao do Keystone
+#      include_tasks: pre_requisitos/pre_requisitos5.yaml
+#
+#
+## Installation minimal deployment Openstack (Controller) parte 1
+#- name: Instalação serviços Openstack (Controller) parte 1
+#  hosts: controller
+#  become: yes
+#  
+#  vars_files:
+#   - vars/main.yaml
+#   - vars/pass.yaml
+#   - vars/adm_openstack.yaml
+#  tasks:
+#  # Instalacao Keystone
+#     - name: Chamar aquivo de instalacao do Keystone
+#       include_tasks: services_openstack/keystone.yaml
+#   # Instalacao Glance
+#     - name: Chamar arquivo de instalacao do Glance
+#       include_tasks: services_openstack/glance.yaml
+#   # Instalacao Placement
+#     - name: Chamar arquivo de instalacao do Placement
+#       include_tasks: services_openstack/placement.yaml
+#   # Instalacao Nova (Controller)
+#     - name: Chamar arquivo de instalacao do Nova no controller
+#       include_tasks: services_openstack/nova/nova_controller.yaml
+# 
+# # Instalacao Nova Compute Openstack (Computes)
+#- name: Instalação Nova Compute (Computes)
+#  hosts: computes
+#
+#  become: yes
+#  
+#  vars_files:
+#   - vars/main.yaml
+#   - vars/pass.yaml
+#   - vars/adm_openstack.yaml
+#
+#  tasks:
+#    - name: Chamar arquivo de instalacao do Nova no compute
+#      include_tasks: services_openstack/nova/nova_computes.yaml
+#
+#    
+## Adicionando compute nodes to the cell database
+#- name: Adicionando nós compute a base de dados cell
+#  hosts: controller
+#
+#  become: yes
+#  
+#  vars_files:
+#   - vars/main.yaml
+#   - vars/pass.yaml
+#   - vars/adm_openstack.yaml
+#
+#  tasks:
+#    - name: Chamar arquivo para adicioanr nós de computacao a database
+#      include_tasks: services_openstack/nova/add_nodecompute.yaml
+#
+#
+# # Instanlando Neutron no Controller
+#- name: Instalacao do neutron no controller
+#  hosts: controller
+#
+#  become: yes
+#  
+#  vars_files:
+#   - vars/main.yaml
+#   - vars/pass.yaml
+#   - vars/adm_openstack.yaml
+#
+#  tasks:
+#    - name: Chamar arquivo para instalacao do neutron no controller
+#      include_tasks: services_openstack/neutron/neutron_controller.yaml
+#
+#
+# # Instanlando Neutron nos Computes
+#- name: Instalacao do neutron nos Computes
+#  hosts: computes
+#
+#  become: yes
+#  
+#  vars_files:
+#   - vars/main.yaml
+#   - vars/pass.yaml
+#   - vars/adm_openstack.yaml
+#
+#  tasks:
+#    - name: Chamar arquivo para instalacao do neutron nos Computes
+#      include_tasks: services_openstack/neutron/neutron_computes.yaml
 
 
 # Instalacao do Horizon
 - name: Instalacao do Horizon no controller
   hosts: controller
 
-  user: great
   become: yes
   
   vars_files:
@@ -172,7 +161,7 @@
    - vars/adm_openstack.yaml
 
   tasks:
-    - name: Chamar arquivo para instalacao do neutron no controller
+    - name: Chamar arquivo para instalacao do horizon no controller
       include_tasks: services_openstack/horizon.yaml
 
 
@@ -180,7 +169,6 @@
 - name: Instalacao do Cinder no controller
   hosts: controller
 
-  user: great
   become: yes
   
   vars_files:
@@ -197,7 +185,6 @@
 - name: Instalacao do Cinder no Nó de Storage
   hosts: storage
 
-  user: great
   become: yes
 
   vars_files:
@@ -210,11 +197,10 @@
       include_tasks: services_openstack/cinder/cinder_node_block_storage.yaml
 
 
-# Patch correções (Attach/Detach disks opentstack e criação de role user)
+# Patch correções 1 (Attach/Detach disks opentstack e criação de role user)
 - name: 1 - Patch correção Attach/Detach disks opentstack
   hosts: controller
 
-  user: great
   become: yes
 
   vars_files:
@@ -223,16 +209,60 @@
    - vars/adm_openstack.yaml
   
   tasks:
-    - name: Chamar arquivo para instalacao do cinder no nó de storage
+    - name: Chamar arquivo para aplicar correcoes 1
       include_tasks: correcoes/correcoes1.yaml
+
+  
+  # Patch correções 2 (Correção tempo limite criação de volume/instancia
+- name: 2 - Patch correção tempo limite criação de volume/instancia
+  hosts: cluster
+
+  become: yes
+
+  vars_files:
+   - vars/main.yaml
+   - vars/pass.yaml
+   - vars/adm_openstack.yaml
+  
+  tasks:
+    - name: Chamar arquivo para aplicar correcoes 2
+      include_tasks: correcoes/correcoes2.yaml
+
+
+# Chamar arquivo de configuração do OpenVSwitch no Controller
+- name: Configuração OpenVSwtich Controller
+  hosts: controller
+
+  become: yes
+
+  vars_files:
+    - vars/main.yaml
+
+  tasks:
+    - name: Chamar arquivo de configuração OpenVSwtich para controller
+      include_tasks: openvswitch_config/ovs_controller.yaml
+
+
+# Chamar arquivo de configuração do OpenVSwitch nos Computes
+- name: Configuração OpenVSwtich Controller
+  hosts: computes
+
+  become: yes
+
+  vars_files:
+    - vars/main.yaml
+
+  tasks:
+    - name: Chamar arquivo de configuração OpenVSwtich para computes
+      include_tasks: openvswitch_config/ovs_computes.yaml
+
 
 # Reboot
 - name: Rebootar cluster
   hosts: cluster
 
-  user: great
   become: yes
   
   tasks:
-    - name: Chamar arquivo para instalacao do cinder no nó de storage
+    - name: Chamar arquivo para rebootar cluster
       include_tasks: correcoes/reboot.yaml

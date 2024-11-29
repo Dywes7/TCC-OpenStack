@@ -7,8 +7,6 @@
   with_items:
     - "{{ip_controller}} {{hostname_controller}}"
     - "{{ip_compute1}} {{hostname_compute1}}"
-    - "{{ip_compute2}} {{hostname_compute2}}"
-    - "{{ip_compute3}} {{hostname_compute3}}"
     - "{{ip_ansible}} {{hostname_ansible}}"
       
 - name: Instalar chrony
