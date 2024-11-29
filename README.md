@@ -21,14 +21,14 @@
     
         2. Editar /etc/neutron/plugins/ml2/ml2_conf.ini
         	[ml2_type_flat]
-        	flat_networks = * 
+        	flat_networks = *
     
         3. Realizar o comando do OpenVSwitch
         	# ovs-vsctl add-br br-provider
     
         4. Editar interface em /etc/netplan/interface.yaml
         	trocar interface real por interface criada do OpenVswitch (br-prodiver)
-        	e deixar a interface real apenas com outro IP para não perder conexão SSH
+        	e adicionar inteface física real como "dhcp4: no"
         
         5. Realizar o comando do OpenVSwitch
         	# ovs-vsctl add-port br-provider {{ physnet }}

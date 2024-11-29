@@ -12,7 +12,7 @@ ip_ansible: "10.50.7.7"
 subrede: "10.50.7.0/26"
 ntp_server: "200.160.7.186"
 path_sql_socket: "/var/run/mysqld/mysqld.sock"
-name_nic_controller: "enp2s0"
+name_nic_controller: "eth0"
 name_nic_computes: "enp2s0"
 ip_provider_network_controller: "10.50.7.11"
 name_disc_storage: sda
