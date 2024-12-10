@@ -30,6 +30,6 @@
         {{ ' ' * 6 }}dhcp4: no
   
 - name: Associar interface virtual OpenVSwitch ao inteface Fisica e aplicar
-  command: nohup bash -c "ovs-vsctl add-port br-provider eth0 && netplan apply" > /tmp/command.log 2>&1 &
+  command: nohup bash -c "ovs-vsctl add-port br-provider {{ name_nic_controller }} && netplan apply" > /tmp/command.log 2>&1 &
   ignore_errors: yes
     

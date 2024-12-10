@@ -113,7 +113,7 @@ Para o controller passos 1 a 5. Para os computes todos menos passo 2.
 5. Realizar o comando do OpenVSwitch
 	# ovs-vsctl add-port br-provider {{ physnet }}
 
-OBS: provider:br-provider, o nome da flat newtorwk que deve ser adicionado no openstach é o primeiro ('provider')
+OBS: provider:br-provider, o nome da flat newtorwk que deve ser adicionado no openstack é o primeiro ('provider')
 
 ****************************************************************************************
 

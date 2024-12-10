@@ -1,152 +1,152 @@
 ---
-#- name: Pre instalar requisitos para o cluster OpenStack
-#  hosts: cluster
-#
-#  become: yes
-#
-#  vars_files:            # arquivo que contém variaveis
-#    - vars/main.yaml
-#
-#  tasks:
-#    - name: Chamar aquivo de instalacao do Keystone
-#      include_tasks: pre_requisitos/pre_requisitos1.yaml
-#
-#
-#- name: Configurar servidor de horas no Controller
-#  hosts: controller
-#
-#  become: yes
-#
-#  vars_files:            # arquivo que contém variaveis
-#   - vars/main.yaml
-#
-#  tasks:
-#    - name: Chamar aquivo de instalacao do Keystone
-#      include_tasks: pre_requisitos/pre_requisitos2.yaml
-#
-#
-#- name: Configurar servidor de horas nos Computes
-#  hosts: computes
-#
-#  become: yes
-#
-#  vars_files:            # arquivo que contém variaveis
-#   - vars/main.yaml
-#
-#  tasks:
-#    - name: Chamar aquivo de instalacao do Keystone
-#      include_tasks: pre_requisitos/pre_requisitos3.yaml
-#
-#
-#- name: Instalar dependencias para Cloud Openstack
-#  hosts: cluster
-#
-#  become: yes
-#
-#  tasks:
-#    - name: Chamar aquivo de instalacao do Keystone
-#      include_tasks: pre_requisitos/pre_requisitos4.yaml
-#
-#
-#- name: Instalar/Configurar SQL, MessageQueue, Memcached e Etcd no controller
-#  hosts: controller
-#
-#  become: yes
-#
-#  vars_files:            # arquivo que contém variaveis
-#   - vars/main.yaml
-#   - vars/pass.yaml
-#
-#  tasks:
-#    - name: Chamar aquivo de instalacao do Keystone
-#      include_tasks: pre_requisitos/pre_requisitos5.yaml
-#
-#
-## Installation minimal deployment Openstack (Controller) parte 1
-#- name: Instalação serviços Openstack (Controller) parte 1
-#  hosts: controller
-#  become: yes
-#  
-#  vars_files:
-#   - vars/main.yaml
-#   - vars/pass.yaml
-#   - vars/adm_openstack.yaml
-#  tasks:
-#  # Instalacao Keystone
-#     - name: Chamar aquivo de instalacao do Keystone
-#       include_tasks: services_openstack/keystone.yaml
-#   # Instalacao Glance
-#     - name: Chamar arquivo de instalacao do Glance
-#       include_tasks: services_openstack/glance.yaml
-#   # Instalacao Placement
-#     - name: Chamar arquivo de instalacao do Placement
-#       include_tasks: services_openstack/placement.yaml
-#   # Instalacao Nova (Controller)
-#     - name: Chamar arquivo de instalacao do Nova no controller
-#       include_tasks: services_openstack/nova/nova_controller.yaml
-# 
-# # Instalacao Nova Compute Openstack (Computes)
-#- name: Instalação Nova Compute (Computes)
-#  hosts: computes
-#
-#  become: yes
-#  
-#  vars_files:
-#   - vars/main.yaml
-#   - vars/pass.yaml
-#   - vars/adm_openstack.yaml
-#
-#  tasks:
-#    - name: Chamar arquivo de instalacao do Nova no compute
-#      include_tasks: services_openstack/nova/nova_computes.yaml
-#
-#    
-## Adicionando compute nodes to the cell database
-#- name: Adicionando nós compute a base de dados cell
-#  hosts: controller
-#
-#  become: yes
-#  
-#  vars_files:
-#   - vars/main.yaml
-#   - vars/pass.yaml
-#   - vars/adm_openstack.yaml
-#
-#  tasks:
-#    - name: Chamar arquivo para adicioanr nós de computacao a database
-#      include_tasks: services_openstack/nova/add_nodecompute.yaml
-#
-#
-# # Instanlando Neutron no Controller
-#- name: Instalacao do neutron no controller
-#  hosts: controller
-#
-#  become: yes
-#  
-#  vars_files:
-#   - vars/main.yaml
-#   - vars/pass.yaml
-#   - vars/adm_openstack.yaml
-#
-#  tasks:
-#    - name: Chamar arquivo para instalacao do neutron no controller
-#      include_tasks: services_openstack/neutron/neutron_controller.yaml
-#
-#
-# # Instanlando Neutron nos Computes
-#- name: Instalacao do neutron nos Computes
-#  hosts: computes
-#
-#  become: yes
-#  
-#  vars_files:
-#   - vars/main.yaml
-#   - vars/pass.yaml
-#   - vars/adm_openstack.yaml
-#
-#  tasks:
-#    - name: Chamar arquivo para instalacao do neutron nos Computes
-#      include_tasks: services_openstack/neutron/neutron_computes.yaml
+- name: Pre instalar requisitos para o cluster OpenStack
+  hosts: cluster
+
+  become: yes
+
+  vars_files:            # arquivo que contém variaveis
+    - vars/main.yaml
+
+  tasks:
+    - name: Chamar aquivo de instalacao do Keystone
+      include_tasks: pre_requisitos/pre_requisitos1.yaml
+
+
+- name: Configurar servidor de horas no Controller
+  hosts: controller
+
+  become: yes
+
+  vars_files:            # arquivo que contém variaveis
+   - vars/main.yaml
+
+  tasks:
+    - name: Chamar aquivo de instalacao do Keystone
+      include_tasks: pre_requisitos/pre_requisitos2.yaml
+
+
+- name: Configurar servidor de horas nos Computes
+  hosts: computes
+
+  become: yes
+
+  vars_files:            # arquivo que contém variaveis
+   - vars/main.yaml
+
+  tasks:
+    - name: Chamar aquivo de instalacao do Keystone
+      include_tasks: pre_requisitos/pre_requisitos3.yaml
+
+
+- name: Instalar dependencias para Cloud Openstack
+  hosts: cluster
+
+  become: yes
+
+  tasks:
+    - name: Chamar aquivo de instalacao do Keystone
+      include_tasks: pre_requisitos/pre_requisitos4.yaml
+
+
+- name: Instalar/Configurar SQL, MessageQueue, Memcached e Etcd no controller
+  hosts: controller
+
+  become: yes
+
+  vars_files:            # arquivo que contém variaveis
+   - vars/main.yaml
+   - vars/pass.yaml
+
+  tasks:
+    - name: Chamar aquivo de instalacao do Keystone
+      include_tasks: pre_requisitos/pre_requisitos5.yaml
+
+
+# Installation minimal deployment Openstack (Controller) parte 1
+- name: Instalação serviços Openstack (Controller) parte 1
+  hosts: controller
+  become: yes
+  
+  vars_files:
+   - vars/main.yaml
+   - vars/pass.yaml
+   - vars/adm_openstack.yaml
+  tasks:
+  # Instalacao Keystone
+     - name: Chamar aquivo de instalacao do Keystone
+       include_tasks: services_openstack/keystone.yaml
+   # Instalacao Glance
+     - name: Chamar arquivo de instalacao do Glance
+       include_tasks: services_openstack/glance.yaml
+   # Instalacao Placement
+     - name: Chamar arquivo de instalacao do Placement
+       include_tasks: services_openstack/placement.yaml
+   # Instalacao Nova (Controller)
+     - name: Chamar arquivo de instalacao do Nova no controller
+       include_tasks: services_openstack/nova/nova_controller.yaml
+ 
+ # Instalacao Nova Compute Openstack (Computes)
+- name: Instalação Nova Compute (Computes)
+  hosts: computes
+
+  become: yes
+  
+  vars_files:
+   - vars/main.yaml
+   - vars/pass.yaml
+   - vars/adm_openstack.yaml
+
+  tasks:
+    - name: Chamar arquivo de instalacao do Nova no compute
+      include_tasks: services_openstack/nova/nova_computes.yaml
+
+    
+# Adicionando compute nodes to the cell database
+- name: Adicionando nós compute a base de dados cell
+  hosts: controller
+
+  become: yes
+  
+  vars_files:
+   - vars/main.yaml
+   - vars/pass.yaml
+   - vars/adm_openstack.yaml
+
+  tasks:
+    - name: Chamar arquivo para adicioanr nós de computacao a database
+      include_tasks: services_openstack/nova/add_nodecompute.yaml
+
+
+ # Instanlando Neutron no Controller
+- name: Instalacao do neutron no controller
+  hosts: controller
+
+  become: yes
+  
+  vars_files:
+   - vars/main.yaml
+   - vars/pass.yaml
+   - vars/adm_openstack.yaml
+
+  tasks:
+    - name: Chamar arquivo para instalacao do neutron no controller
+      include_tasks: services_openstack/neutron/neutron_controller.yaml
+
+
+ # Instanlando Neutron nos Computes
+- name: Instalacao do neutron nos Computes
+  hosts: computes
+
+  become: yes
+  
+  vars_files:
+   - vars/main.yaml
+   - vars/pass.yaml
+   - vars/adm_openstack.yaml
+
+  tasks:
+    - name: Chamar arquivo para instalacao do neutron nos Computes
+      include_tasks: services_openstack/neutron/neutron_computes.yaml
 
 
 # Instalacao do Horizon
