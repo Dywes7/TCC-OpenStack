@@ -1,15 +1,13 @@
 ---
-- name: Adicioanr hostnames
+- name: Adicionar hostnames
   lineinfile:
-    dest: /etc/hosts  # caminho do arquivo onde será feito a iteração
+    dest: /etc/hosts
     state: present
-    line: "{{item}}"   # iteração sobre cada item no with_item
+    line: "{{ item.ip }} {{ item.hostname }}"
   with_items:
-    - "{{ip_controller}} {{hostname_controller}}"
-    - "{{ip_compute1}} {{hostname_compute1}}"
-    - "{{ip_compute2}} {{hostname_compute2}}"
-    - "{{ip_compute3}} {{hostname_compute3}}"
-    - "{{ip_ansible}} {{hostname_ansible}}"
+    - { ip: "{{ ip_controller }}", hostname: "{{ hostname_controller }}" }
+    - { ip: "{{ ip_ansible }}", hostname: "{{ hostname_ansible }}" }
+    - "{{ computes }}"
       
 - name: Instalar chrony
   apt:
