@@ -53,7 +53,7 @@
     var: secure
     
 # Used for testing.
-- local_action: copy content={{secure}} dest=output.txt
+#- local_action: copy content={{secure}} dest=output.txt
 
 # Message queue RabbitMq
 - name: Instalar pacote Rabbitmq-server

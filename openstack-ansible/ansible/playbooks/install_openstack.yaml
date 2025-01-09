@@ -43,6 +43,9 @@
 
   become: yes
 
+  vars_files:            # arquivo que contém variaveis
+   - vars/main.yaml
+
   tasks:
     - name: Chamar aquivo de instalacao do Keystone
       include_tasks: pre_requisitos/pre_requisitos4.yaml

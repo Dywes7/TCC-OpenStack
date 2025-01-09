@@ -1,24 +1,23 @@
-ansible_user: ifce
+ansible_user: great
 hostname_controller: "controller"
-ip_controller: "10.50.7.11"
+ip_controller: "192.168.0.102"
 hostname_ansible: "ansible"
-ip_ansible: "10.50.7.7"
-ip_storage: "10.50.7.25"
-subrede: "10.50.7.0/26"
+ip_ansible: "192.168.0.24"
+ip_storage: "192.168.0.100"
+subrede: "192.168.0.0/24"
 ntp_server: "200.160.7.186"
-name_nic_controller: "enp2s0"
-name_nic_computes: "enp2s0"
-ip_provider_network_controller: "10.50.7.11"
-name_disc_storage: sda
-name_disc_storage_part: sda2
-name_disc_conservar_so: sda
+name_nic_controller: "enp0s3"
+name_nic_computes: "enp4s0"
+ip_provider_network_controller: "192.168.0.102"
+name_disc_storage: nvme0n1
+name_disc_storage_part: nvme0n1p4
+name_disc_conservar_so: nvme0n1
+
 path_sql_socket: "/var/run/mysqld/mysqld.sock"                                                    # NORMALMENTE NÃO É NECESSÁRIO ALTERAR
 nic: "{{ network_facts['ansible_facts']['ansible_' + name_nic_computes]['ipv4']['address'] }}"    # NÃO ALTERE
 
 computes:
   - hostname: "compute1"
-    ip: "10.50.7.12"
+    ip: "192.168.0.100"
   - hostname: "compute2"
-    ip: "10.50.7.25"
-  - hostname: "compute3"
-    ip: "10.50.7.35"
+    ip: "192.168.0.101"
