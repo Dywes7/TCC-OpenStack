@@ -8,7 +8,7 @@
     - vars/main.yaml
 
   tasks:
-    - name: Chamar aquivo de instalacao do Keystone
+    - name: Chamar aquivo de instalaçao dos pre_requisitos1
       include_tasks: pre_requisitos/pre_requisitos1.yaml
 
 
@@ -21,7 +21,7 @@
    - vars/main.yaml
 
   tasks:
-    - name: Chamar aquivo de instalacao do Keystone
+    - name: Chamar aquivo de instalaçao dos pre_requisitos2
       include_tasks: pre_requisitos/pre_requisitos2.yaml
 
 
@@ -34,7 +34,7 @@
    - vars/main.yaml
 
   tasks:
-    - name: Chamar aquivo de instalacao do Keystone
+    - name: Chamar aquivo de instalaçao dos pre_requisitos3
       include_tasks: pre_requisitos/pre_requisitos3.yaml
 
 
@@ -47,7 +47,7 @@
    - vars/main.yaml
 
   tasks:
-    - name: Chamar aquivo de instalacao do Keystone
+    - name: Chamar aquivo de instalaçao dos pre_requisitos4
       include_tasks: pre_requisitos/pre_requisitos4.yaml
 
 
@@ -61,7 +61,7 @@
    - vars/pass.yaml
 
   tasks:
-    - name: Chamar aquivo de instalacao do Keystone
+    - name: Chamar aquivo de instalaçao dos pre_requisitos5
       include_tasks: pre_requisitos/pre_requisitos5.yaml
 
 
@@ -230,6 +230,34 @@
   tasks:
     - name: Chamar arquivo para aplicar correcoes 2
       include_tasks: correcoes/correcoes2.yaml
+
+
+# Chamar arquivo de configuração da rede vxlan no Controller
+- name: Configuração VXLAN Controller
+  hosts: controller
+
+  become: yes
+
+  vars_files:
+    - vars/main.yaml
+
+  tasks:
+    - name: Chamar arquivo de configuração da rede VXLAN para controller
+      include_tasks: vxlan_config/vxlan_controller.yaml
+
+
+# Chamar arquivo de configuração da rede vxlan nos Computes
+- name: Configuração VXLAN Computes
+  hosts: computes
+
+  become: yes
+
+  vars_files:
+    - vars/main.yaml
+
+  tasks:
+    - name: Chamar arquivo de configuração da rede VXLAN para computes
+      include_tasks: vxlan_config/vxlan_computes.yaml
 
 
 # Chamar arquivo de configuração do OpenVSwitch no Controller
