@@ -103,9 +103,9 @@ name_disc_storage_part: sda2
 name_disc_conservar_so: sda
 
 computes:
-- hostname: "computed"
+- hostname: "compute1"
   ip: "10.50.7.12"
-- hostname: "computed"
+- hostname: "compute2"
   ip: "10.50.7.25"
 - hostname: "compute3"
   ip: "10.50.7.35"
