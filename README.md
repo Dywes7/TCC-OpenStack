@@ -1,34 +1,37 @@
-# TCC-OpenStack
+# Implantação de Cluster OpenStack com Ansible
 
-# openstack_ansible
+Este repositório contém scripts Ansible para a implantação de um cluster OpenStack utilizando o Ubuntu Server 22.04.03 LTS. Os scripts automatizam a instalação e configuração do OpenStack versão 23.1 Antelope em múltiplos nós, incluindo um controlador, nós de computação e um nó de armazenamento.
 
-1. EDITAR ARQUIVO 'pre_requisitos/pre_requisitos1.yaml' e inserir linhas "{{ip_computex}} {{hostname_computex}}" para novos computes 
+## Pré-requisitos
+- **Sistema Operacional:** Ubuntu Server 22.04.03 LTS instalado em todas as máquinas do cluster.
+- **Ansible:** Instalado em um nó de controle (preferencialmente um notebook).
+- **Hardware:** 
+  - Nós gerais: Partição de 40 GB para o sistema operacional e sistema de arquivos.
+  - Nó de armazenamento: HDD de 500 GB com uma partição total disponível.
 
-2. Adicionar novas variáveis em vars/main.yaml adicionando nova variável para 'hostname_computex' e 'ip_computex' inserindo o hostname e ip
+## Configuração Inicial
+1. **Instale o Ubuntu Server** em todos os nós com o mesmo nome de usuário e senha.
+2. **Configure IPs privados fixos** para todas as máquinas para garantir conectividade estável.
+3. **Padronize os nomes das interfaces de rede** nos nós de computação para funcionamento consistente do script de automação.
+4. **Exporte e distribua as chaves públicas SSH** do servidor de controle Ansible para todos os nós para login SSH sem senha.
 
-3. Adicionar hosts no servidor ansible em /etc/ansible/hosts
+## Configuração de Hosts Ansible
+Configurar o arquivo `/etc/ansible/hosts` no servidor Ansible para incluir os endereços IP dos nós do cluster, categorizados de acordo com suas funções no ambiente:
 
-4. Executar playbook
+```yaml
+[cluster]
+10.50.7.11
+10.50.7.12
+10.50.7.25
+10.50.7.35
 
-5. Configurar as interfaces com o OpenVSwtich
-    
-        Para o controller passos 1 a 5. Para os computes todos menos passo 2.
-    
-        1. Editar /etc/neutron/plugins/ml2/openvswitch_agent.ini
-        	[ovs]
-        	bridge_mappings = provider:br-provider
-        
-    
-        2. Editar /etc/neutron/plugins/ml2/ml2_conf.ini
-        	[ml2_type_flat]
-        	flat_networks = *
-    
-        3. Realizar o comando do OpenVSwitch
-        	# ovs-vsctl add-br br-provider
-    
-        4. Editar interface em /etc/netplan/interface.yaml
-        	trocar interface real por interface criada do OpenVswitch (br-prodiver)
-        	e adicionar inteface física real como "dhcp4: no"
-        
-        5. Realizar o comando do OpenVSwitch
-        	# ovs-vsctl add-port br-provider {{ physnet }}
+[controller]
+10.50.7.11
+
+[computes]
+10.50.7.12
+10.50.7.25
+10.50.7.35
+
+[storage]
+10.50.7.25
