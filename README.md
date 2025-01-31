@@ -55,3 +55,72 @@ Este repositório contém os scripts e instruções necessários para a implemen
 
 [storage]
 10.50.7.25
+
+```
+
+## Testes de Conexão e Configuração do Cluster
+
+### Testes de Conexão
+
+Execute os seguintes comandos no servidor Ansible para testar a conectividade com os nós do cluster:
+
+```bash
+ansible -m ping cluster -u ifce
+ansible -m ping controller -u ifce
+ansible -m ping computes -u ifce
+ansible -m ping storage -u ifce
+```
+
+## Configuração das Variáveis do Cluster
+
+### 1. Clonagem do Repositório
+
+Clone o repositório contendo os scripts de configuração:
+
+```bash
+git clone <repositório>
+
+```
+
+## Configuração do Arquivo `vars/main.yaml`
+
+Edite o arquivo `openstack-ansible/ansible/playbooks/vars/main.yaml` com as seguintes variáveis:
+
+```yaml
+ansible_user: ifce
+hostname_controller: "controller"
+ip_controller: "10.50.7.11"
+hostname_ansible: "ansible"
+ip_ansible: "192.168.0.24"
+ip_storage: "10.50.7.25"
+subrede: "10.50.7.0/26"
+ntp_server: "200.160.7.186"
+name_nic_controller: "enp250"
+name_nic_computes: "enp250"
+ip_provider_network_controller: "10.50.7.11"
+name_disc_storage: sda
+name_disc_storage_part: sda2
+name_disc_conservar_so: sda
+
+computes:
+- hostname: "computed"
+  ip: "10.50.7.12"
+- hostname: "computed"
+  ip: "10.50.7.25"
+- hostname: "compute3"
+  ip: "10.50.7.35"
+```
+## Configuração das Senhas
+
+Defina as senhas para os serviços do OpenStack no arquivo `openstack-ansible/ansible/playbooks/vars/pass.yaml`.
+
+## Execução do Playbook
+
+Acesse o diretório `openstack-ansible/ansible/playbooks` e execute o playbook principal:
+
+```bash
+ansible-playbook ./install_openstack.yaml --ask-become-pass
+```
+
+Insira a senha do usuário `ifce` quando solicitado.
+
