@@ -1,0 +1,145 @@
+---
+- name: Pre instalar requisitos para o cluster OpenStack
+  hosts: news_computes
+
+  become: yes
+
+  vars_files:            # arquivo que contém variaveis
+    - vars/main.yaml
+
+  tasks:
+    - name: Chamar aquivo de instalaçao dos pre_requisitos1
+      include_tasks: pre_requisitos/pre_requisitos1.yaml
+
+
+- name: Configurar servidor de horas nos Computes
+  hosts: news_computes
+
+  become: yes
+
+  vars_files:            # arquivo que contém variaveis
+   - vars/main.yaml
+
+  tasks:
+    - name: Chamar aquivo de instalaçao dos pre_requisitos3
+      include_tasks: pre_requisitos/pre_requisitos3.yaml
+
+
+- name: Instalar dependencias para Cloud Openstack
+  hosts: news_computes
+
+  become: yes
+
+  vars_files:            # arquivo que contém variaveis
+   - vars/main.yaml
+
+  tasks:
+    - name: Chamar aquivo de instalaçao dos pre_requisitos4
+      include_tasks: pre_requisitos/pre_requisitos4.yaml
+
+ 
+ # Instalacao Nova Compute Openstack (Computes)
+- name: Instalação Nova Compute (Computes)
+  hosts: news_computes
+
+  become: yes
+  
+  vars_files:
+   - vars/main.yaml
+   - vars/pass.yaml
+   - vars/adm_openstack.yaml
+
+  tasks:
+    - name: Chamar arquivo de instalacao do Nova no compute
+      include_tasks: services_openstack/nova/nova_computes.yaml
+
+    
+# Adicionando compute nodes to the cell database
+- name: Adicionando nós compute a base de dados cell
+  hosts: controller
+
+  become: yes
+  
+  vars_files:
+   - vars/main.yaml
+   - vars/pass.yaml
+   - vars/adm_openstack.yaml
+
+  tasks:
+    - name: Chamar arquivo para adicioanr nós de computacao a database
+      include_tasks: services_openstack/nova/add_nodecompute.yaml
+
+
+ # Instanlando Neutron nos Computes
+- name: Instalacao do neutron nos Computes
+  hosts: news_computes
+
+  become: yes
+  
+  vars_files:
+   - vars/main.yaml
+   - vars/pass.yaml
+   - vars/adm_openstack.yaml
+
+  tasks:
+    - name: Chamar arquivo para instalacao do neutron nos Computes
+      include_tasks: services_openstack/neutron/neutron_computes.yaml
+
+
+
+  
+  # Patch correções 2 (Correção tempo limite criação de volume/instancia
+- name: 2 - Patch correção tempo limite criação de volume/instancia
+  hosts: news_computes
+
+  become: yes
+
+  vars_files:
+   - vars/main.yaml
+   - vars/pass.yaml
+   - vars/adm_openstack.yaml
+  
+  tasks:
+    - name: Chamar arquivo para aplicar correcoes 2
+      include_tasks: correcoes/correcoes2.yaml
+
+
+
+# Chamar arquivo de configuração da rede vxlan nos Computes
+- name: Configuração VXLAN Computes
+  hosts: news_computes
+
+  become: yes
+
+  vars_files:
+    - vars/main.yaml
+
+  tasks:
+    - name: Chamar arquivo de configuração da rede VXLAN para computes
+      include_tasks: vxlan_config/vxlan_computes.yaml
+
+
+
+# Chamar arquivo de configuração do OpenVSwitch nos Computes
+- name: Configuração OpenVSwtich Computes
+  hosts: news_computes
+
+  become: yes
+
+  vars_files:
+    - vars/main.yaml
+
+  tasks:
+    - name: Chamar arquivo de configuração OpenVSwtich para computes
+      include_tasks: openvswitch_config/ovs_computes.yaml
+
+
+# Reboot
+- name: Rebootar news_computes
+  hosts: news_computes
+
+  become: yes
+  
+  tasks:
+    - name: Chamar arquivo para rebootar cluster
+      include_tasks: correcoes/reboot.yaml
