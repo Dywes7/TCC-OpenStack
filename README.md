@@ -28,7 +28,7 @@ Este repositório contém os scripts e instruções necessários para a implemen
 
 ### 3. Configuração das Interfaces de Rede
 
-- Padronize o nome das interfaces de rede físicas nos nós de computação para `enp250`.
+- Padronize o nome das interfaces de rede físicas nos nós de computação para o mesmo nome, como por exemplo `enp250`.
 
 ### 4. Configuração do SSH
 
