@@ -13,7 +13,7 @@ Este repositório contém os scripts e instruções necessários para a implemen
 ### 1. Instalação do Sistema Operacional
 
 - Instale o Ubuntu Server 22.04.03 LTS em todas as máquinas do cluster.
-- Crie um usuário comum (`ifce`) com a mesma senha em todas as máquinas.
+- Crie um usuário comum (`nomeusuario`) com a mesma senha em todas as máquinas.
 - Configure o espaço de disco conforme necessário:
   - **Nós de Computação e Controlador**: Utilize uma partição de 40 GB para o sistema operacional e sistema de arquivos.
   - **Nó de Armazenamento**: Formate um disco de 500 GB e crie uma partição com o espaço total disponível.
@@ -32,7 +32,7 @@ Este repositório contém os scripts e instruções necessários para a implemen
 
 ### 4. Configuração do SSH
 
-- Exporte a chave SSH pública do servidor Ansible e adicione-a ao arquivo `/home/ifce/.ssh/authorized_keys` em cada nó do cluster.
+- Exporte a chave SSH pública do servidor Ansible e adicione-a ao arquivo `/home/nomeusuario/.ssh/authorized_keys` em cada nó do cluster.
 
 ### 5. Configuração do Arquivo `/etc/ansible/hosts`
 
@@ -65,10 +65,10 @@ Este repositório contém os scripts e instruções necessários para a implemen
 Execute os seguintes comandos no servidor Ansible para testar a conectividade com os nós do cluster:
 
 ```bash
-ansible -m ping cluster -u ifce
-ansible -m ping controller -u ifce
-ansible -m ping computes -u ifce
-ansible -m ping storage -u ifce
+ansible -m ping cluster -u nomeusuario
+ansible -m ping controller -u nomeusuario
+ansible -m ping computes -u nomeusuario
+ansible -m ping storage -u nomeusuario
 ```
 
 ## Configuração das Variáveis do Cluster
@@ -87,7 +87,7 @@ git clone <repositório>
 Edite o arquivo `openstack-ansible/ansible/playbooks/vars/main.yaml` com as seguintes variáveis:
 
 ```yaml
-ansible_user: ifce
+ansible_user: nomeusuario
 hostname_controller: "controller"
 ip_controller: "10.50.7.11"
 hostname_ansible: "ansible"
@@ -122,5 +122,5 @@ Acesse o diretório `openstack-ansible/ansible/playbooks` e execute o playbook p
 ansible-playbook ./install_openstack.yaml --ask-become-pass
 ```
 
-Insira a senha do usuário `ifce` quando solicitado.
+Insira a senha do usuário `nomeusuario` quando solicitado.
 
